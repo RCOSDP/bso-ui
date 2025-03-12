@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-source .env.josm
+source ./.env.josm
 PROJECT_DIR=$(pwd)
 TARGET=$1
 
@@ -85,8 +85,7 @@ function rotate_logs() {
         for LOG_FILE in "${LOG_FILES[@]}"; do
             LOG_DATE=$(basename "$LOG_FILE" | awk -F'_' '{print $1}')
             if [ $LOG_DATE -le $(date -d "$DELETE_LOG_DAYS days ago" "+%Y%m%d") ]; then
-                rm -f "/var/log/${LOG_DIR}/${LOG_FILE}"
-                echo "Deleted: ${LOG_DIR}/${LOG_FILE}"
+                rm -f "/var/log/${LOG_DIR}/${LOG_FILE}" && echo "Deleted: ${LOG_DIR}/${LOG_FILE}"
             else
                 break
             fi
