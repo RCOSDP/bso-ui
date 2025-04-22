@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-source .env.josm
+source ./.env.josm
 PROJECT_DIR=$(pwd)
 TARGET=$1
 
@@ -73,6 +73,15 @@ function rotate_logs() {
         # get list of not uploaded log files
         NOT_UPLOADED_LOG_FILES=($(printf "%s\n" "${LOG_FILES[@]}" | grep -Fxv -e "$pattern"))
 
+        # check if UPLOAD_LOG_DAYS and DELETE_LOG_DAYS are not set
+        if [ -z "$UPLOAD_LOG_DAYS" ]; then
+            echo "UPLOAD_LOG_DAYS is not set. Exiting."
+            exit 1
+        elif [ -z "$DELETE_LOG_DAYS" ]; then
+            echo "DELETE_LOG_DAYS is not set. Exiting."
+            exit 1
+        fi
+
         # upload log files
         for LOG_FILE in "${NOT_UPLOADED_LOG_FILES[@]}"; do
             LOG_DATE=$(basename "$LOG_FILE" | awk -F'_' '{print $1}')
@@ -85,8 +94,7 @@ function rotate_logs() {
         for LOG_FILE in "${LOG_FILES[@]}"; do
             LOG_DATE=$(basename "$LOG_FILE" | awk -F'_' '{print $1}')
             if [ $LOG_DATE -le $(date -d "$DELETE_LOG_DAYS days ago" "+%Y%m%d") ]; then
-                rm -f "/var/log/${LOG_DIR}/${LOG_FILE}"
-                echo "Deleted: ${LOG_DIR}/${LOG_FILE}"
+                rm -f "/var/log/${LOG_DIR}/${LOG_FILE}" && echo "Deleted: ${LOG_DIR}/${LOG_FILE}"
             else
                 break
             fi
