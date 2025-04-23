@@ -89,7 +89,15 @@ function useGetData(observationSnap, domain) {
       },
     };
   } else {
-    res = [];
+    res = {
+      data: {
+        aggregations: {
+          by_year: {
+            buckets: [],
+          },
+        },
+      },
+    };
   }
     if (IS_TEST) {
       console.log('type-ouverture_preRes:', preRes); // eslint-disable-line no-console
