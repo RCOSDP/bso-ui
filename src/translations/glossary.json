@@ -17,15 +17,6 @@
       "intlDefinition": "app.glossary.diamond.definition",
       "intlEntry": "app.glossary.diamond"
     },
-    "doaj": {
-      "intlDefinition": "app.glossary.doaj.definition",
-      "intlEntry": "app.glossary.doaj",
-      "ctas": ["https://doaj.org/", "https://is4oa.org/"]
-    },
-    "doi": {
-      "intlDefinition": "app.glossary.doi.definition",
-      "intlEntry": "app.glossary.doi"
-    },
     "embargo": {
       "intlDefinition": "app.glossary.embargo.definition",
       "intlEntry": "app.glossary.embargo"
@@ -42,49 +33,13 @@
       "intlDefinition": "app.glossary.licence.definition",
       "intlEntry": "app.glossary.licence"
     },
-    "metadata": {
-      "intlDefinition": "app.glossary.metadata.definition",
-      "intlEntry": "app.glossary.metadata"
-    },
-    "openapc": {
-      "intlDefinition": "app.glossary.openapc.definition",
-      "intlEntry": "app.glossary.openapc",
-      "cta": "https://openapc.net/"
-    },
-    "pmc": {
-      "intlDefinition": "app.glossary.pmc.definition",
-      "intlEntry": "app.glossary.pmc",
-      "cta": "https://www.ncbi.nlm.nih.gov/pmc/"
-    },
     "preprints": {
       "intlEntry": "app.glossary.preprint",
       "intlDefinition": "app.glossary.preprint.definition"
     },
-    "publication": {
-      "intlDefinition": "app.glossary.publication.definition",
-      "intlEntry": "app.glossary.publication"
-    },
     "publication-fr": {
       "intlDefinition": "app.glossary.publication-fr.definition",
       "intlEntry": "app.glossary.publication-fr"
-    },
-    "pubmed": {
-      "intlDefinition": "app.glossary.pubmed.definition",
-      "intlEntry": "app.glossary.pubmed",
-      "cta": "https://pubmed.ncbi.nlm.nih.gov/"
-    },
-    "repository": {
-      "intlDefinition": "app.glossary.repository.definition",
-      "intlEntry": "app.glossary.repository"
-    },
-    "type-hebergement-oa": {
-      "intlDefinition": "app.glossary.type-hebergement-oa.definition",
-      "intlEntry": "app.glossary.type-hebergement-oa"
-    },
-    "unpaywall": {
-      "intlDefinition": "app.glossary.unpaywall.definition",
-      "intlEntry": "app.glossary.unpaywall",
-      "cta": "https://unpaywall.org/"
     }
   }
 ]
