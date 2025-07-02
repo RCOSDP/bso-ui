@@ -10,6 +10,9 @@ server {
   real_ip_recursive on;
 
   location / {
+    auth_digest "josm";
+    auth_digest_user_file /etc/nginx/.htdigest;
+
     root /usr/share/nginx/html;
     index index.html index.htm;
     try_files $uri $uri/ /index.html =404;
