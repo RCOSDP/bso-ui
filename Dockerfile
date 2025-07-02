@@ -39,6 +39,7 @@ RUN ./configure \
     --with-http_ssl_module \
     --with-http_v2_module \
     --with-http_gzip_static_module \
+    --with-http_realip_module \
     --add-module=/usr/src/nginx-http-auth-digest && \
     make && \
     make install
