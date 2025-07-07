@@ -34,8 +34,8 @@ RUN ./configure \
     --prefix=/etc/nginx \
     --sbin-path=/usr/sbin/nginx \
     --conf-path=/etc/nginx/nginx.conf \
-    --error-log-path=/var/log/nginx/error.log \
-    --http-log-path=/var/log/nginx/access.log \
+    --error-log-path=/dev/stderr \
+    --http-log-path=/dev/stdout \
     --with-http_ssl_module \
     --with-http_v2_module \
     --with-http_gzip_static_module \
