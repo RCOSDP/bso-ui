@@ -179,6 +179,14 @@ function Header() {
             })}
             asLink={<RouterLink to={urls.about[lang]} />}
           />
+          <NavItem
+            current={false}
+            title={intl.formatMessage({
+              id: 'app.header.nav.top',
+              defaultMessage: 'Top',
+            })}
+            asLink={<RouterLink to={urls.national[lang] + search} />}
+          />
         </HeaderNav>
       </DSHeader>
     </WrapperDisplay>

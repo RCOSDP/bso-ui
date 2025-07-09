@@ -40,7 +40,7 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
   );
   const { dataGraph1 } = data;
   const idWithDomain = withDomain(id, domain);
-  const archiveTitle = archive !== '*' ? ` (${archive})` : '';
+  const archiveTitle = archive !== '*' ? ` ${archive}` : ` ${capitalize(intl.formatMessage({ id: 'app.all-repositories' }))}`;
   const dataTitle = { archiveTitle };
   const optionsGraph = chartOptions[id].getOptions(
     idWithDomain,
