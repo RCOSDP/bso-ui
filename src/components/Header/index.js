@@ -162,7 +162,7 @@ function Header() {
               id: 'app.header.nav.top',
               defaultMessage: 'Top',
             })}
-            asLink={<RouterLink to={urls.national[lang] + search} />}
+            asLink={<RouterLink to={urls.national[lang]} />}
           />
           <NavItem
             current={
