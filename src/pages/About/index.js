@@ -52,6 +52,10 @@ function About() {
               <a href='https://frenchopensciencemonitor.esr.gouv.fr/'>
                 French Open Science Monitor
               </a>
+              <br />
+              <a href='https://openalex.org/' target='_blank' rel='noreferrer'>
+                OpenAlex
+              </a>
             </Col>
           </Row>
         </section>

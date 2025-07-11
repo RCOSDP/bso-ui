@@ -82,11 +82,11 @@ export default function Footer() {
             <p className='josm-footer__title-copy'>
               {intl.formatMessage({ id: 'app.header.title' })}
             </p>
-            <p className='josm-footer__version'>{`v${process.env.REACT_APP_VERSION}`}</p>
+            {/* <p className='josm-footer__version'>{`v${process.env.REACT_APP_VERSION}`}</p> */}
           </div>
         </div>
         <FooterCopy className='w-100'>
-          {intl.formatMessage({ id: 'app.footer.licence.usage' })}
+          {/* {intl.formatMessage({ id: 'app.footer.licence.usage' })}
           {' '}
           <a
             href={intl.formatMessage({
@@ -96,7 +96,7 @@ export default function Footer() {
             rel='noreferrer'
           >
             licence etalab-2.0
-          </a>
+          </a> */}
         </FooterCopy>
       </DSFooter>
       <div className='overlay z-3600' />

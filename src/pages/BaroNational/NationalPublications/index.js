@@ -475,17 +475,17 @@ export default function NationalPublications() {
                     fr: '/publications/archives?id=repositories.plus-utilisees',
                   },
                 },
-                {
-                  label: intl.formatMessage({
-                    id: 'app.publi.navigation.archives.depot',
-                  }),
-                  href: {
-                    en: '/publications/repositories?id=repositories.dynamique-depot',
-                    ja: '/publications/repositories?id=repositories.dynamique-depot',
-                    fr: '/publications/archives?id=repositories.dynamique-depot',
-                  },
-                  isDisplayed: !isInProduction(),
-                },
+                // {
+                //   label: intl.formatMessage({
+                //     id: 'app.publi.navigation.archives.depot',
+                //   }),
+                //   href: {
+                //     en: '/publications/repositories?id=repositories.dynamique-depot',
+                //     ja: '/publications/repositories?id=repositories.dynamique-depot',
+                //     fr: '/publications/archives?id=repositories.dynamique-depot',
+                //   },
+                //   isDisplayed: !isInProduction(),
+                // },
                 {
                   label: intl.formatMessage({
                     id: 'app.publi.navigation.archives.hal',

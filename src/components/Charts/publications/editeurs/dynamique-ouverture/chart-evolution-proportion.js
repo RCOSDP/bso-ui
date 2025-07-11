@@ -41,7 +41,7 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
   );
   const { categories, dataGraph2 } = data;
   const idWithDomain = withDomain(id, domain);
-  const publisherTitle = publisher !== '*' ? ` (${publisher})` : '';
+  const publisherTitle = publisher !== '*' ? ` ${publisher}` : ` ${capitalize(intl.formatMessage({ id: 'app.all-publishers' }))}`;
   const dataTitle = { publisherTitle };
   const optionsGraph = chartOptions[id].getOptions(
     idWithDomain,

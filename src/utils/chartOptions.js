@@ -2007,7 +2007,7 @@ export const chartOptions = {
         title: { text: intl.formatMessage({ id: 'app.publi.tarif-apc' }) },
         labels: {
           formatter() {
-            return this.axis.defaultLabelFormatter.call(this).concat(' €');
+            return this.axis.defaultLabelFormatter.call(this).concat(' $');
           },
         },
       };

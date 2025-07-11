@@ -41,7 +41,7 @@ const Chart = ({ domain, id, hasComments, hasFooter }) => {
   );
   const { dataGraph1 } = data;
   const idWithDomain = withDomain(id, domain);
-  const publisherTitle = publisher !== '*' ? ` (${publisher})` : '';
+  const publisherTitle = publisher !== '*' ? ` ${publisher}` : ` ${capitalize(intl.formatMessage({ id: 'app.all-publishers' }))}`;
   const dataTitle = {
     publicationYear: beforeLastObservationSnap,
     publisherTitle,

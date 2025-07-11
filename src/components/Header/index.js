@@ -157,6 +157,14 @@ function Header() {
         </HeaderBody>
         <HeaderNav path={path}>
           <NavItem
+            current={false}
+            title={intl.formatMessage({
+              id: 'app.header.nav.top',
+              defaultMessage: 'Top',
+            })}
+            asLink={<RouterLink to={urls.national[lang] + search} />}
+          />
+          <NavItem
             current={
               path.startsWith(urls.nationalPublications[lang])
               || path === urls.nationalThesis[lang]
