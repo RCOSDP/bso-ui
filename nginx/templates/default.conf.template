@@ -12,6 +12,8 @@ server {
   location / {
     auth_digest "josm";
     auth_digest_user_file /etc/nginx/.htdigest;
+    auth_digest_expires 1800s;
+    auth_digest_replays 1000;
 
     root /usr/share/nginx/html;
     index index.html index.htm;
