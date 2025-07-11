@@ -26,10 +26,10 @@ RUN apk update && apk add --no-cache \
     wget \
     apache2-utils
 WORKDIR /usr/src
-RUN wget http://nginx.org/download/nginx-1.25.3.tar.gz && \
-    tar -zxvf nginx-1.25.3.tar.gz && \
+RUN wget http://nginx.org/download/nginx-1.28.0.tar.gz && \
+    tar -zxvf nginx-1.28.0.tar.gz && \
     git clone https://github.com/atomx/nginx-http-auth-digest.git
-WORKDIR /usr/src/nginx-1.25.3
+WORKDIR /usr/src/nginx-1.28.0
 RUN ./configure \
     --prefix=/etc/nginx \
     --sbin-path=/usr/sbin/nginx \
