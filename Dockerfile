@@ -47,7 +47,7 @@ COPY --from=build /app/build /usr/share/nginx/html
 COPY ./nginx/templates/default.conf.template /etc/nginx/conf.d/default.conf
 COPY ./nginx/.htdigest /etc/nginx/.htdigest
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
-COPY ./nginx/osm.ir.rcos.nii.ac.jp.crt /etc/nginx/server.crt
-COPY ./nginx/osm.ir.rcos.nii.ac.jp.key /etc/nginx/server.key
+COPY ./nginx/server.crt /etc/nginx/server.crt
+COPY ./nginx/server.key /etc/nginx/server.key
 EXPOSE 3000
 CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
