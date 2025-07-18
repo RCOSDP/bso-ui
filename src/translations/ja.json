@@ -38,7 +38,7 @@
   "app.type-diffusion": "結果の普及方法",
   "app.all-sponsors": "すべての主要スポンサー",
   "app.baro-national.detail-publi": "出版物に関する詳細情報",
-  "app.baro-national.intro": "オープンアクセスとは、研究成果である出版物を、技術的または財政的な障壁なく、誰もがオンラインで利用できるようにすることです。Japan Open Science Monitorでは、著者のうち少なくとも1名が日本の研究機関に所属する出版物を対象としています。オープンアクセス率は、特定の範囲（年、分野、出版者など）の出版物における、オープンアクセスである出版物の割合を示します。<linebreak></linebreak>オープンアクセスにより研究成果が学術コミュニティや一般社会へ広く普及することで、新たな研究やイノベーションの創出が加速されることが期待されています。<linebreak></linebreak><linebreak></linebreak>Japan Open Science Monitorでは、French Open Science Monitorと同様にOpenAlexをデータソースとして活用しています。ただし、OpenAlexは日本の機関リポジトリの収録状況が十分ではないため、リポジトリ経由でのオープンアクセス、特に日本の機関リポジトリ経由でのオープンアクセスの指標が、実際よりも低く算出される傾向があります。そのため、2025年度末を目標に IRDB（学術機関リポジトリデータベース）からのデータも追加で取り込み、より正確な指標を提供できるよう改善を進めています。",
+  "app.baro-national.intro": "オープンアクセスとは、研究成果である出版物を、技術的または財政的な障壁なく、誰もがオンラインで利用できるようにすることです。Japan Open Science Monitorでは、著者のうち少なくとも1名が日本の研究機関に所属する出版物を対象としています。オープンアクセス率は、特定の範囲（年、分野、出版者など）の出版物における、オープンアクセスである出版物の割合を示します。<linebreak></linebreak>オープンアクセスにより研究成果が学術コミュニティや一般社会へ広く普及することで、新たな研究やイノベーションの創出が加速されることが期待されています。<linebreak></linebreak><linebreak></linebreak>Japan Open Science Monitorは、French Open Science MonitorがCrossrefとUnpaywallを主要なデータソースとしているのと同様に、OpenAlexをデータソースとして活用しています。ただし、OpenAlexは日本の機関リポジトリの収録状況が十分ではないため、リポジトリ経由でのオープンアクセス、特に日本の機関リポジトリ経由でのオープンアクセスの指標が、実際よりも低く算出される傾向があります。そのため、2025年度末を目標に IRDB（学術機関リポジトリデータベース）からのデータも追加で取り込み、より正確な指標を提供できるよう改善を進めています。",
   "app.baro-national.main-title": "出版物",
   "app.baro-national.publications.title": "出版物",
   "app.baro-national.today-title": "現在のJapan Open Science Monitor",
