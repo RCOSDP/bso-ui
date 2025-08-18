@@ -42,7 +42,7 @@ export const PUBLISHER_LIST = [
 ];
 
 export const REPOSITORY_LIST = {
-  'ja-repositories': '日本の機関リポジトリ',
+  'ja-repositories': 'ja-repository',
   'PubMed Central': 'PubMed Central',
   arXiv: 'arXiv',
   'Europe PMC': 'Europe PMC',
