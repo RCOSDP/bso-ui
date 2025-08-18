@@ -258,7 +258,7 @@ function useGetData(observationSnaps, needle = '*', domain) {
           .filter(
             (el) => el.key < parseInt(newData.observationSnap.substring(0, 4), 10)
               && el.by_is_oa.buckets.length > 0
-              && el.doc_count
+              // && el.doc_count
               && el.key > 2012,
           );
         const publicationDates = [];
@@ -271,7 +271,7 @@ function useGetData(observationSnaps, needle = '*', domain) {
           .filter(
             (el) => el.key < parseInt(newData.observationSnap.substring(0, 4), 10)
               && el.by_is_oa.buckets.length > 0
-              && el.doc_count
+              // && el.doc_count
               && el.key > 2012,
           );
         tmpData.forEach((el) => {
@@ -368,7 +368,46 @@ function useGetData(observationSnaps, needle = '*', domain) {
       }));
     // .filter((el) => el.y > 0);
 
-    const categories = dataGraph2?.[0]?.data.map((item) => item.publicationDate) || [];
+    const allYearsSet = new Set();
+    dataGraph2.forEach((serie) => {
+      // eslint-disable-next-line no-param-reassign
+      serie.data.forEach((item) => {
+        allYearsSet.add(Number(item.publicationDate));
+      });
+    });
+    const categories = Array.from(allYearsSet).sort((a, b) => a - b);
+
+    dataGraph2.forEach((serie) => {
+      const yearDataMap = {};
+      serie.data.forEach((d) => {
+        yearDataMap[Number(d.publicationDate)] = d;
+      });
+      // eslint-disable-next-line no-param-reassign
+      serie.data = categories.map((year) => {
+        if (yearDataMap[year]) {
+          const d = yearDataMap[year];
+          return {
+            ...d,
+            y: Number.isFinite(d.y) ? d.y : 0,
+            y_tot: d.y_tot ?? 0,
+            y_abs: d.y_abs ?? 0,
+          };
+        }
+        return {
+          y: 0,
+          y_tot: 0,
+          y_abs: 0,
+          bsoDomain: serie.data[0]?.bsoDomain,
+          archive: serie.data[0]?.archive,
+          name: serie.name,
+          publicationDate: year,
+        };
+      });
+      // eslint-disable-next-line no-param-reassign
+      serie.ratios = serie.data.map(
+        (item) => `(${item.y_abs} / ${item.y_tot})`,
+      );
+    });
     let firstObservationYear = '';
     let percentage = '';
     let publicationDate = '';
