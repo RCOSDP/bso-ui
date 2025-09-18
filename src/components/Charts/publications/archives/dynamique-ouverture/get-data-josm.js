@@ -145,42 +145,91 @@ function useGetData(observationSnaps, needle = '*', domain) {
         console.log('dynamique-ouverture_preRes:', preRes); // eslint-disable-line no-console
       }
     } else {
-      preRes = await Axios.post(
-        ES_API_URL,
-        {
-          query: {
-            bool: {
-              filter: [
-                { terms: { calc_date: lastDateOfYear } },
-                { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
-                { term: { repository: needle } },
-              ],
+    // 全リポジトリの合計値を取得
+    const preAllDataRes = await Axios.post(
+      ES_API_URL,
+      {
+        size: 0,
+        query: {
+          bool: {
+            filter: [
+              { terms: { calc_date: lastDateOfYear } },
+              { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
+            ],
+            must_not: [
+              { term: { repository: 'ja-repository' } },
+            ],
+          },
+        },
+        aggs: {
+          by_calc_date: {
+            terms: { field: 'calc_date', size: 1000, order: { _key: 'desc' } },
+            aggs: {
+              nested_data: {
+                nested: { path: 'data' },
+                aggs: {
+                  total_per_year: {
+                    terms: { field: 'data.publication_year', size: 1000 },
+                    aggs: {
+                      total_sum: { sum: { field: 'data.total' } },
+                      oa_sum: { sum: { field: 'data.oa' } },
+                    },
+                  },
+                },
+              },
             },
           },
         },
-      );
-      if (IS_TEST) {
-        console.log('dynamique-ouverture_preRes:', preRes); // eslint-disable-line no-console
-      }
-      const preList = preRes.data.hits.hits;
-      const preSource = preList.map((hit) => ({
-        _source: {
-          data: hit._source.data.map((item) => ({
-            pubulication_year: item.publication_year,
-            total: item.total,
-            oa: item.oa,
-          })),
-        },
-      }));
+      },
+    );
 
-      preRes = {
-        data: {
-          hits: {
-            hits: preSource,
+    const allTotals = {};
+    const allBuckets = preAllDataRes.data.aggregations.by_calc_date.buckets;
+    allBuckets.forEach((bucket) => {
+      const nestedBuckets = bucket.nested_data.total_per_year.buckets;
+      nestedBuckets.forEach((item) => {
+        allTotals[item.key] = item.total_sum.value;
+      });
+    });
+
+    // リポジトリごとのデータを取得
+    const preResHits = await Axios.post(
+      ES_API_URL,
+      {
+        query: {
+          bool: {
+            filter: [
+              { terms: { calc_date: lastDateOfYear } },
+              { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
+              { term: { repository: needle } },
+            ],
           },
         },
-      };
+      },
+    );
+    if (IS_TEST) {
+        console.log('dynamique-ouverture_preRes:', preRes); // eslint-disable-line no-console
     }
+
+    const preList = preResHits.data.hits.hits;
+    const preSource = preList.map((hit) => ({
+      _source: {
+        data: hit._source.data.map((item) => ({
+          pubulication_year: item.publication_year,
+          total: allTotals[item.publication_year],
+          oa: item.oa,
+        })),
+      },
+    }));
+
+    preRes = {
+      data: {
+        hits: {
+          hits: preSource,
+        },
+      },
+    };
+  }
 
     let responses;
     if (observationYears) {
