@@ -208,7 +208,8 @@ function useGetData(observationSnaps, needle = '*', domain) {
       },
     );
     if (IS_TEST) {
-        console.log('dynamique-ouverture_preRes:', preRes); // eslint-disable-line no-console
+        console.log('dynamique-ouverture_preAllDataRes:', preAllDataRes); // eslint-disable-line no-console
+        console.log('dynamique-ouverture_preResHits:', preResHits); // eslint-disable-line no-console
     }
 
     const preList = preResHits.data.hits.hits;
