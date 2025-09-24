@@ -157,7 +157,7 @@ function Header() {
         </HeaderBody>
         <HeaderNav path={path}>
           <NavItem
-            current={false}
+            current={path === urls.national[lang]}
             title={intl.formatMessage({
               id: 'app.header.nav.top',
               defaultMessage: 'Top',

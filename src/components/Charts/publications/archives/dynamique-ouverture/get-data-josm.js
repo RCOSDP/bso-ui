@@ -145,42 +145,92 @@ function useGetData(observationSnaps, needle = '*', domain) {
         console.log('dynamique-ouverture_preRes:', preRes); // eslint-disable-line no-console
       }
     } else {
-      preRes = await Axios.post(
-        ES_API_URL,
-        {
-          query: {
-            bool: {
-              filter: [
-                { terms: { calc_date: lastDateOfYear } },
-                { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
-                { term: { repository: needle } },
-              ],
+    // 全リポジトリの合計値を取得
+    const preAllDataRes = await Axios.post(
+      ES_API_URL,
+      {
+        size: 0,
+        query: {
+          bool: {
+            filter: [
+              { terms: { calc_date: lastDateOfYear } },
+              { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
+            ],
+            must_not: [
+              { term: { repository: 'ja-repository' } },
+            ],
+          },
+        },
+        aggs: {
+          by_calc_date: {
+            terms: { field: 'calc_date', size: 1000, order: { _key: 'desc' } },
+            aggs: {
+              nested_data: {
+                nested: { path: 'data' },
+                aggs: {
+                  total_per_year: {
+                    terms: { field: 'data.publication_year', size: 1000 },
+                    aggs: {
+                      total_sum: { sum: { field: 'data.total' } },
+                      oa_sum: { sum: { field: 'data.oa' } },
+                    },
+                  },
+                },
+              },
             },
           },
         },
-      );
-      if (IS_TEST) {
-        console.log('dynamique-ouverture_preRes:', preRes); // eslint-disable-line no-console
-      }
-      const preList = preRes.data.hits.hits;
-      const preSource = preList.map((hit) => ({
-        _source: {
-          data: hit._source.data.map((item) => ({
-            pubulication_year: item.publication_year,
-            total: item.total,
-            oa: item.oa,
-          })),
-        },
-      }));
+      },
+    );
 
-      preRes = {
-        data: {
-          hits: {
-            hits: preSource,
+    const allTotals = {};
+    const allBuckets = preAllDataRes.data.aggregations.by_calc_date.buckets;
+    allBuckets.forEach((bucket) => {
+      const nestedBuckets = bucket.nested_data.total_per_year.buckets;
+      nestedBuckets.forEach((item) => {
+        allTotals[item.key] = item.total_sum.value;
+      });
+    });
+
+    // リポジトリごとのデータを取得
+    const preResHits = await Axios.post(
+      ES_API_URL,
+      {
+        query: {
+          bool: {
+            filter: [
+              { terms: { calc_date: lastDateOfYear } },
+              { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
+              { term: { repository: needle } },
+            ],
           },
         },
-      };
+      },
+    );
+    if (IS_TEST) {
+        console.log('dynamique-ouverture_preAllDataRes:', preAllDataRes); // eslint-disable-line no-console
+        console.log('dynamique-ouverture_preResHits:', preResHits); // eslint-disable-line no-console
     }
+
+    const preList = preResHits.data.hits.hits;
+    const preSource = preList.map((hit) => ({
+      _source: {
+        data: hit._source.data.map((item) => ({
+          pubulication_year: item.publication_year,
+          total: allTotals[item.publication_year],
+          oa: item.oa,
+        })),
+      },
+    }));
+
+    preRes = {
+      data: {
+        hits: {
+          hits: preSource,
+        },
+      },
+    };
+  }
 
     let responses;
     if (observationYears) {
@@ -258,7 +308,7 @@ function useGetData(observationSnaps, needle = '*', domain) {
           .filter(
             (el) => el.key < parseInt(newData.observationSnap.substring(0, 4), 10)
               && el.by_is_oa.buckets.length > 0
-              && el.doc_count
+              // && el.doc_count
               && el.key > 2012,
           );
         const publicationDates = [];
@@ -271,7 +321,7 @@ function useGetData(observationSnaps, needle = '*', domain) {
           .filter(
             (el) => el.key < parseInt(newData.observationSnap.substring(0, 4), 10)
               && el.by_is_oa.buckets.length > 0
-              && el.doc_count
+              // && el.doc_count
               && el.key > 2012,
           );
         tmpData.forEach((el) => {
@@ -368,7 +418,46 @@ function useGetData(observationSnaps, needle = '*', domain) {
       }));
     // .filter((el) => el.y > 0);
 
-    const categories = dataGraph2?.[0]?.data.map((item) => item.publicationDate) || [];
+    const allYearsSet = new Set();
+    dataGraph2.forEach((serie) => {
+      // eslint-disable-next-line no-param-reassign
+      serie.data.forEach((item) => {
+        allYearsSet.add(Number(item.publicationDate));
+      });
+    });
+    const categories = Array.from(allYearsSet).sort((a, b) => a - b);
+
+    dataGraph2.forEach((serie) => {
+      const yearDataMap = {};
+      serie.data.forEach((d) => {
+        yearDataMap[Number(d.publicationDate)] = d;
+      });
+      // eslint-disable-next-line no-param-reassign
+      serie.data = categories.map((year) => {
+        if (yearDataMap[year]) {
+          const d = yearDataMap[year];
+          return {
+            ...d,
+            y: Number.isFinite(d.y) ? d.y : 0,
+            y_tot: d.y_tot ?? 0,
+            y_abs: d.y_abs ?? 0,
+          };
+        }
+        return {
+          y: 0,
+          y_tot: 0,
+          y_abs: 0,
+          bsoDomain: serie.data[0]?.bsoDomain,
+          archive: serie.data[0]?.archive,
+          name: serie.name,
+          publicationDate: year,
+        };
+      });
+      // eslint-disable-next-line no-param-reassign
+      serie.ratios = serie.data.map(
+        (item) => `(${item.y_abs} / ${item.y_tot})`,
+      );
+    });
     let firstObservationYear = '';
     let percentage = '';
     let publicationDate = '';

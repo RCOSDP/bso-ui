@@ -40,7 +40,14 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
   );
   const { dataGraph1 } = data;
   const idWithDomain = withDomain(id, domain);
-  const archiveTitle = archive !== '*' ? ` ${archive}` : ` ${capitalize(intl.formatMessage({ id: 'app.all-repositories' }))}`;
+  let archiveTitle;
+  if (archive === '*') {
+    archiveTitle = ` ${capitalize(intl.formatMessage({ id: 'app.all-repositories' }))}`;
+  } else if (archive === 'ja-repository') {
+    archiveTitle = ' 日本の機関リポジトリ';
+  } else {
+    archiveTitle = ` ${archive}`;
+  }
   const dataTitle = { archiveTitle };
   const optionsGraph = chartOptions[id].getOptions(
     idWithDomain,

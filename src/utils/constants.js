@@ -98,15 +98,15 @@ export const mobileButtonLabel = {
 };
 
 export const documentTitles = {
-  '/': 'app.header.title',
+  '/': 'app.document.title',
   '/a-propos/foire-aux-questions': 'app.faq',
   '/about/questions': 'app.faq',
   '/a-propos/notes-flash': 'app.header.nav.a-propos-notes-flash',
   '/about/flash-notes': 'app.header.nav.a-propos-notes-flash',
   '/publications/general': 'app.publications.document.title',
-  '/publications/disciplines': 'app.publications.document.title',
-  '/publications/editeurs': 'app.publications.document.title',
-  '/publications/archives': 'app.publications.document.title',
+  '/publications/fields': 'app.publications.document.title',
+  '/publications/publishers': 'app.publications.document.title',
+  '/publications/repositories': 'app.publications.document.title',
   '/sante/publications/general': 'app.sante.publications.document.title',
   '/health/publications/general': 'app.sante.publications.document.title',
   '/sante/publications/disciplines': 'app.sante.publications.document.title',
@@ -154,6 +154,7 @@ export const documentTitles = {
   '/theses-de-doctorat/general': 'app.thesis.document.title',
   '/thesis/general': 'app.thesis.document.title',
   '/orcid/general': 'app.orcid.document.title',
+  '/about': 'app.header.nav.a-propos',
 };
 
 export const alphabet = [

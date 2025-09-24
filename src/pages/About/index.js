@@ -1,11 +1,21 @@
 import { Col, Container, Row } from '@dataesr/react-dsfr';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Banner from '../../components/Banner';
+import useLang from '../../utils/Hooks/useLang';
 
 function About() {
   const intl = useIntl();
+  const { lang } = useLang();
+
+  useEffect(() => {
+    if (lang === 'ja') {
+      document.title = 'About | Japan Open Science Monitor試験版';
+    } else {
+      document.title = 'About | Japan Open Science Monitor β';
+    }
+  }, [lang]);
 
   return (
     <div className='about'>
