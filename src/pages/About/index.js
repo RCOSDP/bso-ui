@@ -42,6 +42,50 @@ function About() {
                       French Open Science Monitor
                     </a>
                   ),
+                }}
+              />
+            </Col>
+          </Row>
+          <Row gutters>
+            <Col n='12'>
+              <h3>{intl.formatMessage({ id: 'app.about.background' })}</h3>
+              <FormattedMessage
+                id='app.about.background.body'
+                values={{
+                  p: (chunks) => <p>{chunks}</p>,
+                  br: <br />,
+                  unescorec: () => (
+                    <a
+                      href='https://www.unesco.org/en/open-science/about'
+                      style={{ marginInline: '0.5em' }}
+                      target='_blank'
+                      rel='noreferrer'
+                    >
+                      UNESCO Recommendation on Open Science
+                    </a>
+                  ),
+                }}
+              />
+            </Col>
+          </Row>
+          <Row gutters>
+            <Col n='12'>
+              <h3>{intl.formatMessage({ id: 'app.about.method' })}</h3>
+              <FormattedMessage
+                id='app.about.method.body'
+                values={{
+                  p: (chunks) => <p>{chunks}</p>,
+                  br: <br />,
+                  fosm: () => (
+                    <a
+                      href='https://frenchopensciencemonitor.esr.gouv.fr/'
+                      style={{ marginInline: '0.5em' }}
+                      target='_blank'
+                      rel='noreferrer'
+                    >
+                      French Open Science Monitor
+                    </a>
+                  ),
                   openalex: () => (
                     <a
                       href='https://openalex.org/'
@@ -58,6 +102,47 @@ function About() {
           </Row>
           <Row gutters>
             <Col n='12'>
+              <h3>{intl.formatMessage({ id: 'app.about.acknowledgement' })}</h3>
+              <FormattedMessage
+                id='app.about.acknowledgement.body'
+                values={{
+                  p: (chunks) => <p>{chunks}</p>,
+                  dacos: () => (
+                    <a
+                      href='https://orcid.org/0000-0002-9361-5295'
+                      style={{ marginInline: '0.5em' }}
+                      target='_blank'
+                      rel='noreferrer'
+                    >
+                      Marin Dacos
+                    </a>
+                  ),
+                  jeangirard: () => (
+                    <a
+                      href='https://orcid.org/0000-0002-3767-7125'
+                      style={{ marginInline: '0.5em' }}
+                      target='_blank'
+                      rel='noreferrer'
+                    >
+                      Eric Jeangirard
+                    </a>
+                  ),
+                  romary: () => (
+                    <a
+                      href='https://orcid.org/0000-0002-0756-0508'
+                      style={{ marginInline: '0.5em' }}
+                      target='_blank'
+                      rel='noreferrer'
+                    >
+                      Laurent Romary
+                    </a>
+                  ),
+                }}
+              />
+            </Col>
+          </Row>
+          <Row gutters>
+            <Col n='12'>
               <h3>{intl.formatMessage({ id: 'app.about.reference' })}</h3>
               <a href='https://frenchopensciencemonitor.esr.gouv.fr/'>
                 French Open Science Monitor
@@ -65,6 +150,14 @@ function About() {
               <br />
               <a href='https://openalex.org/' target='_blank' rel='noreferrer'>
                 OpenAlex
+              </a>
+              <br />
+              <a href='https://open-science-monitoring.org/monitors/' target='_blank' rel='noreferrer'>
+                Monitors -- Open Science Monitoring Intiatives (OSMI)
+              </a>
+              <br />
+              <a href='https://monitor.openaire.eu/' target='_blank' rel='noreferrer'>
+                OpenAIRE Monitor
               </a>
             </Col>
           </Row>
