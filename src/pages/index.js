@@ -75,7 +75,11 @@ const HomePage = () => {
         supTitle={<FormattedMessage id='app.header.welcome-on' />}
         title={<FormattedMessage id='app.header.title-bis' />}
         subTitle={
-          <FormattedMessage id='app.header.subtitle' values={{ br: <br /> }} />
+          <>
+            <FormattedMessage id="app.header.subtitle" values={{ br: <br /> }} />
+            <br />
+            <FormattedMessage id="app.header.subtitle.description"  values={{ small: (chunks) => ( <span style={{ fontSize: '1.00rem' , fontWeight: 'normal',}}>{chunks}</span>),}}/>
+          </>
         }
         link={{
           label: <FormattedMessage id='app.communication.see' />,
@@ -114,6 +118,18 @@ const HomePage = () => {
                   <GlossaryFormattedMessage
                     intlKey='app.baro-national.intro'
                     glossaryKeys={['acces-ouvert', 'publication-fr']}
+                    values={{
+                      irdb: () => (
+                        <a
+                          href='https://irdb.nii.ac.jp/'
+                          style={{ marginInline: '0.5em' }}
+                          target='_blank'
+                          rel='noreferrer'
+                        >
+                          IRDB
+                        </a>
+                      ),
+                    }}
                   />
                 )}
               >
