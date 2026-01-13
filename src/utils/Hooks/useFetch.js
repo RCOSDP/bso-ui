@@ -208,12 +208,20 @@ export default function useFetch({ method, options, url }) {
             size: 10000,
             query: {
               bool: {
-                should: [
-                  { match: { data_type: 'general.dynamique-ouverture.get-data' } },
-                  { match: { data_type: 'editeurs.type-ouverture.get-data' } },
-                  { match: { data_type: 'general.genres-ouverture.get-data-proportion' } },
-                  { match: { data_type: 'archives.dynamique-hal.get-data' } },
-                  { match: { calc_date: lastDate } },
+                must: [
+                  { term: { calc_date: lastDate } },
+                ],
+                filter: [
+                  {
+                    terms: {
+                      data_type: [
+                        'general.dynamique-ouverture.get-data',
+                        'editeurs.type-ouverture.get-data',
+                        'general.genres-ouverture.get-data-proportion',
+                        'archives.dynamique-hal.get-data',
+                      ],
+                    },
+                  },
                 ],
               },
             },
