@@ -74,13 +74,13 @@ const HomePage = () => {
         backgroundColor='blue-soft-150'
         supTitle={<FormattedMessage id='app.header.welcome-on' />}
         title={<FormattedMessage id='app.header.title-bis' />}
-        subTitle={
+        subTitle={(
           <>
-            <FormattedMessage id="app.header.subtitle" values={{ br: <br /> }} />
+            <FormattedMessage id='app.header.subtitle' values={{ br: <br /> }} />
             <br />
-            <FormattedMessage id="app.header.subtitle.description"  values={{ small: (chunks) => ( <span style={{ fontSize: '1.00rem' , fontWeight: 'normal',}}>{chunks}</span>),}}/>
+            <FormattedMessage id='app.header.subtitle.description' values={{ small: (chunks) => (<span style={{ fontSize: '1.00rem', fontWeight: 'normal' }}>{chunks}</span>) }} />
           </>
-        }
+        )}
         link={{
           label: <FormattedMessage id='app.communication.see' />,
           url: intl.formatMessage({ id: 'url.about.communication' }) + search,
