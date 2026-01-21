@@ -46,9 +46,9 @@ export default function DataCardSection({ domain, lang }) {
         fetch: (buckets) => (
           Math.round(
             (buckets.find((countObj) => countObj.key === 1).doc_count
-              / publicationsNumber)
-            * 100
-            * 10,
+                / publicationsNumber)
+                * 100
+                * 10,
           ) / 10
         ).toFixed(0),
         get: openPublicationRate,
