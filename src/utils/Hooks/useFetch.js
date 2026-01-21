@@ -14,7 +14,7 @@ export default function useFetch({ method, options, url }) {
     isMounted,
     error,
     reset: () => setResponse(),
-    fetch: async (params = {}) => {
+    fetch: async (params = {}, lastObservationSnap) => {
       /* eslint-enable arrow-parens, no-confusing-arrow */
       const { options: fetchOptions, reload } = params;
 
@@ -228,8 +228,9 @@ export default function useFetch({ method, options, url }) {
           });
 
         // 前年を取得
-        const currentYear = new Date().getFullYear();
-        const targetYear = currentYear - 1;
+        const targetYear = lastObservationSnap
+          ? parseInt(lastObservationSnap, 10) - 1
+          : new Date().getFullYear() - 1;
 
         // データ整形処理
         const res = {};

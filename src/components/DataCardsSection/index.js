@@ -270,7 +270,7 @@ export default function DataCardSection({ domain, lang }) {
           parameters: [lastObservationSnap],
           objectType: ['publications'],
         }),
-      });
+      }, lastObservationSnap);
     }
     return () => {
       if (lastObservationSnap) {
