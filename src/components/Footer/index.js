@@ -62,6 +62,34 @@ export default function Footer() {
               </DSIcon>
             </FooterLink>
           </FooterTopCategory>
+          <FooterTopCategory
+            title={intl.formatMessage({ id: 'app.footer.terms' })}
+          >
+            <FooterLink target='_blank' href={intl.formatMessage({ id: 'app.footer.terms.url' })}>
+              <DSIcon
+                className='ds-fr--v-middle'
+                name='ri-external-link-fill'
+                size='l'
+                iconPosition='right'
+              >
+                <span>{intl.formatMessage({ id: 'app.footer.terms' })}</span>
+              </DSIcon>
+            </FooterLink>
+          </FooterTopCategory>
+          <FooterTopCategory
+            title={intl.formatMessage({ id: 'app.footer.privacypolicy' })}
+          >
+            <FooterLink target='_blank' href={intl.formatMessage({ id: 'app.footer.privacypolicy.url' })}>
+              <DSIcon
+                className='ds-fr--v-middle'
+                name='ri-external-link-fill'
+                size='l'
+                iconPosition='right'
+              >
+                <span>{intl.formatMessage({ id: 'app.footer.privacypolicy' })}</span>
+              </DSIcon>
+            </FooterLink>
+          </FooterTopCategory>
         </FooterTop>
         <div className='josm-footer__contents'>
           <div className='josm-footer__brands'>
