@@ -218,7 +218,7 @@ export default function useFetch({ method, options, url }) {
                         'general.dynamique-ouverture.get-data',
                         'editeurs.type-ouverture.get-data',
                         'general.genres-ouverture.get-data-proportion',
-                        'archives.dynamique-hal.get-data',
+                        'archives.dynamique-ouverture.get-data',
                       ],
                     },
                   },
@@ -285,12 +285,35 @@ export default function useFetch({ method, options, url }) {
             };
             res.aggregations.by_genre.buckets.push(genre_buckets_book);
           }
-          if (hit._source.data_type === 'archives.dynamique-hal.get-data') {
-            const repo_data = hit._source.data.find(item => item.publication_year === targetYear);
+          if (hit._source.data_type === 'archives.dynamique-ouverture.get-data') {
+            // 対象年のレコードを抽出
+            const row = Array.isArray(hit._source.data)
+              ? hit._source.data.find((it) => it.publication_year === targetYear)
+              : undefined;
+
+            const oa = Number(row?.oa ?? 0);
+            const { buckets } = res.aggregations.by_repositories;
+
+            // 既存 HAL バケットの有無を確認
+            const existingIdx = buckets.findIndex((b) => b.key === 'HAL');
+            const prev = existingIdx >= 0 ? buckets[existingIdx] : { key: 'HAL', doc_count: 0, total: 0 };
+
+            // 合計更新
+            // - total: 全リポジトリ OA 合計
+            // - doc_count: ja-repository の OA 合計
+            const { repository: repoName = '' } = hit._source;
+            const nextDocCount = prev.doc_count + (repoName === 'ja-repository' ? oa : 0);
+            const nextTotal = prev.total + oa;
+
+            // 集計結果を repo_buckets に格納
             const repo_buckets = {
               key: 'HAL',
-              doc_count: repo_data.jp_repo,
+              doc_count: nextDocCount,
+              total: nextTotal,
             };
+            if (existingIdx >= 0) {
+              buckets.splice(existingIdx, 1);
+            }
             res.aggregations.by_repositories.buckets.push(repo_buckets);
           }
         });
