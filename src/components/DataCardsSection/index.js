@@ -251,7 +251,7 @@ export default function DataCardSection({ domain, lang }) {
         const hal = aggregations.by_repositories.buckets?.find((item) => item.key === 'HAL');
         setTotalHostedDocuments(
           formatNumberByLang(
-            (hal?.doc_count || 0) + (hal?.other_repo || 0),
+            hal?.total,
             lang,
           ),
         );

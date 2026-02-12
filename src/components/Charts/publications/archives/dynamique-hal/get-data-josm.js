@@ -3,239 +3,198 @@ import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 // import { ES_API_URL, HEADERS } from '../../../../../config/config';
-import { ES_API_URL, IS_TEST } from '../../../../../config/config';
+import { ES_API_URL } from '../../../../../config/config';
 // import getFetchOptions from '../../../../../utils/chartFetchOptions';
 import {
-  capitalize,
-  getCSSValue,
-  getObservationLabel,
+    capitalize,
+    getCSSValue,
 } from '../../../../../utils/helpers';
 
-function useGetData(beforeLastObservationSnap, lastObservationSnap, domain) {
-  const intl = useIntl();
-  const [data, setData] = useState([]);
-  const [isLoading, setLoading] = useState(true);
-  const [isError, setError] = useState(false);
-  const bsoDomain = intl.formatMessage({ id: `app.bsoDomain.${domain}` });
+function useGetDataTest(beforeLastObservationSnap, lastObservationSnap, domain) {
+    const [data, setData] = useState({});
+    const [isLoading, setLoading] = useState(true);
+    const [isError, setError] = useState(false);
+    const intl = useIntl();
+    const bsoDomain = intl.formatMessage({ id: `app.bsoDomain.${domain}` });
 
-  async function GetData() {
-    // 1回目のクエリ 最新のcalc_dateを取得
-    const latestDateRes = await Axios.post(ES_API_URL, {
-      size: 1,
-      _source: ['calc_date'],
-      sort: [
-        {
-          calc_date: {
-            order: 'desc',
-          },
-        },
-      ],
-      query: {
-        term: {
-          data_type: 'archives.dynamique-hal.get-data',
-        },
-      },
-    });
-
-    // 1回目のクエリで得たcalc_dateをlatestCalcDateに代入
-    /* eslint-disable no-underscore-dangle */
-    const latestCalcDate = latestDateRes.data.hits.hits[0]._source.calc_date;
-
-    // 2回目のクエリ 最新のcalc_dateのデータを取得
-    const preRes = await Axios.post(ES_API_URL, {
-      query: {
-        bool: {
-          must: [
-            { term: { calc_date: latestCalcDate } },
-            { term: { data_type: 'archives.dynamique-hal.get-data' } },
-          ],
-        },
-      },
-    });
-
-    let res;
-    if (lastObservationSnap) {
-    // 成形処理
-    /* eslint-disable no-underscore-dangle */
-    res = [
-      {
-        data: {
-          aggregations: {
-            by_publication_year: {
-              doc_count_error_upper_bound: 0,
-              sum_other_doc_count: 0,
-              buckets: preRes.data.hits.hits[0]._source.data.map((item) => ({
-                key: item.publication_year,
-                doc_count: item.jp_repo,
-              })),
+    async function getDataByObservationSnaps() {
+        // 1回目のクエリ 最新のcalc_dateを取得
+        const latestDateRes = await Axios.post(ES_API_URL, {
+            size: 0,
+            aggs: {
+                unique_calc_dates: {
+                    terms: {
+                        field: 'calc_date',
+                        size: 10000,
+                    },
+                },
             },
-          },
-        },
-      },
-      {
-        data: {
-          aggregations: {
-            by_publication_year: {
-              doc_count_error_upper_bound: 0,
-              sum_other_doc_count: 0,
-              buckets: preRes.data.hits.hits[0]._source.data.map((item) => ({
-                key: item.publication_year,
-                doc_count: item.other_repo + item.jp_repo,
-              })),
+            query: {
+                term: {
+                    data_type: 'archives.dynamique-ouverture.get-data',
+                },
             },
-          },
-        },
-      },
-    ];
-  } else {
-    res = [{
-      data: {
-        aggregations: {
-          by_publication_year: {
-            buckets: [],
-          },
-        },
-      },
-    },
-    {
-      data: {
-        aggregations: {
-          by_publication_year: {
-            buckets: [],
-          },
-        },
-      },
-    }];
-  }
-    /* eslint-enable no-underscore-dangle */
-    if (IS_TEST) {
-      console.log('dynamique-hal_preRes:', preRes); // eslint-disable-line no-console
-      console.log('dynamique-hal_res:', res); // eslint-disable-line no-console
+        });
+
+        // ユニークな `calc_date` のリストを取得
+        const yearMonthDayList = latestDateRes.data.aggregations.unique_calc_dates.buckets.map(
+            (bucket) => bucket.key_as_string.slice(0, 10),
+        );
+
+        const yearGroups = yearMonthDayList.reduce((acc, date) => {
+            const year = date.slice(0, 4);
+            if (!acc[year]) acc[year] = [];
+            acc[year].push(date);
+            return acc;
+        }, {});
+        const lastDateOfYear = [];
+
+        // 各年のデータから最終日を取得
+        Object.keys(yearGroups).forEach((year) => {
+            /* eslint-enable arrow-parens, no-confusing-arrow */
+            const yearDates = yearGroups[year];
+            const lastDate = yearDates.reduce((latest, current) => (current > latest ? current : latest));
+            lastDateOfYear.push(lastDate);
+        });
+        lastDateOfYear.sort((a, b) => new Date(b) - new Date(a));
+
+        function buildRepoAggQuery({ calcDates, repoMode }) {
+            // repoMode: 'not_ja' | 'ja'
+            const baseBool = {
+                filter: [
+                    { terms: { calc_date: lastDateOfYear } },
+                    { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
+                ],
+            };
+
+            if (repoMode === 'not_ja') {
+                baseBool.must_not = [{ term: { repository: 'ja-repository' } }];
+            } else if (repoMode === 'ja') {
+                baseBool.filter.push({ term: { repository: 'ja-repository' } });
+            }
+
+            return {
+                size: 0,
+                query: { bool: baseBool },
+                aggs: {
+                    by_calc_date: {
+                        terms: { field: 'calc_date', size: 1000, order: { _key: 'desc' } },
+                        aggs: {
+                            nested_data: {
+                                nested: { path: 'data' },
+                                aggs: {
+                                    total_per_year: {
+                                        terms: { field: 'data.publication_year', size: 1000 },
+                                        aggs: {
+                                            total_sum: { sum: { field: 'data.total' } },
+                                            oa_sum: { sum: { field: 'data.oa' } },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+        }
+        const notJaRes = await Axios.post(
+            ES_API_URL,
+            buildRepoAggQuery({ lastDateOfYear, repoMode: 'not_ja' }),
+        );
+
+        const jaRes = await Axios.post(
+            ES_API_URL,
+            buildRepoAggQuery({ lastDateOfYear, repoMode: 'ja' }),
+        );
+
+        // データ整形
+        const pickLatestBucket = (res) => res?.data?.aggregations?.by_calc_date?.buckets?.[0];
+
+        const toYearOaMap = (bucket) => {
+            const m = new Map();
+            const ys = bucket?.nested_data?.total_per_year?.buckets ?? [];
+            ys.forEach((b) => m.set(Number(b.key), b.oa_sum?.value ?? 0));
+            return m;
+        };
+
+        const buildPoints = ({ years, absMap, denomMap }) => years.map((year) => {
+            const abs = absMap.get(year) ?? 0;
+            const tot = denomMap.get(year) ?? 0;
+            return {
+                x: year,
+                publicationDate: year,
+                bsoDomain,
+                y: tot > 0 ? (abs * 100) / tot : 0,
+                y_abs: abs,
+                y_tot: tot,
+            };
+        });
+
+        // --- jaRes/notJaRes から作る ---
+        const jaBucket = pickLatestBucket(jaRes);
+        const notJaBucket = pickLatestBucket(notJaRes);
+
+        const jaOaMap = toYearOaMap(jaBucket);
+        const notJaOaMap = toYearOaMap(notJaBucket);
+
+        // 年の全集合を作る
+        const snapYear = parseInt(lastObservationSnap.substring(0, 4), 10);
+
+        const years = Array.from(new Set([...jaOaMap.keys(), ...notJaOaMap.keys()]))
+            .filter((y) => y > 2012 && y < snapYear)
+            .sort((a, b) => a - b);
+
+        // 分母（全OA）Map を作る：denom(year) = jaOA + notJaOA
+        const denomMap = new Map(
+            years.map((y) => [y, (jaOaMap.get(y) ?? 0) + (notJaOaMap.get(y) ?? 0)]),
+        );
+
+        // hal / notHal の data 配列
+        const hal = buildPoints({ years, absMap: jaOaMap, denomMap });
+        const notHal = buildPoints({ years, absMap: notJaOaMap, denomMap });
+
+        const dataGraph2 = [
+            {
+                name: capitalize(
+                    intl.formatMessage({
+                        id: 'app.health-publi.repositories.dynamique-hal.notHal',
+                    }),
+                ),
+                data: notHal,
+                color: getCSSValue('--green-medium-150'),
+            },
+            {
+                name: capitalize(
+                    intl.formatMessage({
+                        id: 'app.health-publi.repositories.dynamique-hal.hal',
+                    }),
+                ),
+                data: hal,
+                color: getCSSValue('--acces-ouvert'),
+            },
+        ];
+        const publicationYears = years;
+        return { publicationYears, dataGraph2 };
     }
 
-    let dataHAL = res[0].data.aggregations.by_publication_year.buckets;
-    dataHAL = dataHAL
-      .sort((a, b) => a.key - b.key)
-      .filter(
-        (el) => el.key > 2012
-          && parseInt(el.key, 10)
-            < parseInt(lastObservationSnap.substring(0, 4), 10),
-      );
-    let dataArchive = res[1].data.aggregations.by_publication_year.buckets;
-    dataArchive = dataArchive
-      .sort((a, b) => a.key - b.key)
-      .filter(
-        (el) => el.key > 2012
-          && parseInt(el.key, 10)
-            < parseInt(lastObservationSnap.substring(0, 4), 10),
-      );
-    const publicationYears = [];
-    const hal = [];
-    const notHal = [];
-    dataHAL.forEach((el, index) => {
-      publicationYears.push(el.key);
-      hal.push({
-        y_abs: el.doc_count,
-        y: (100 * el.doc_count) / dataArchive[index].doc_count,
-        bsoDomain,
-        y_percHAL: (100 * el.doc_count) / dataArchive[index].doc_count,
-        y_tot: dataArchive[index].doc_count,
-        x: el.key,
-      });
-      notHal.push({
-        y_abs: dataArchive[index].doc_count - el.doc_count,
-        y:
-          (100 * (dataArchive[index].doc_count - el.doc_count))
-          / dataArchive[index].doc_count,
-        bsoDomain,
-        y_percHAL:
-          (100 * (dataArchive[index].doc_count - el.doc_count))
-          / dataArchive[index].doc_count,
-        y_tot: dataArchive[index].doc_count,
-        x: el.key,
-      });
-    });
-    const dataGraph2 = [
-      {
-        name: capitalize(
-          intl.formatMessage({
-            id: 'app.health-publi.repositories.dynamique-hal.notHal',
-          }),
-        ),
-        data: notHal,
-        color: getCSSValue('--green-medium-150'),
-      },
-      {
-        name: capitalize(
-          intl.formatMessage({
-            id: 'app.health-publi.repositories.dynamique-hal.hal',
-          }),
-        ),
-        data: hal,
-        color: getCSSValue('--acces-ouvert'),
-      },
-    ];
-
-    const valueHalLabel = capitalize(
-      intl.formatMessage({
-        id: 'app.health-publi.repositories.dynamique-hal.hal',
-      }),
-    );
-    const valueNotHalLabel = capitalize(
-      intl.formatMessage({
-        id: 'app.health-publi.repositories.dynamique-hal.notHal',
-      }),
-    );
-    let valueHAL = '';
-    let valueNotHAL = '';
-    if (dataGraph2) {
-      valueHAL = dataGraph2
-        .find((item) => item.name === valueHalLabel)
-        ?.data.find(
-          (item) => item.x.toString()
-            === getObservationLabel(beforeLastObservationSnap, intl),
-        )
-        ?.y.toFixed(0);
-      valueNotHAL = dataGraph2
-        .find((item) => item.name === valueNotHalLabel)
-        ?.data.find(
-          (item) => item.x.toString()
-            === getObservationLabel(beforeLastObservationSnap, intl),
-        )
-        ?.y.toFixed(0);
-    }
-
-    const comments = {
-      observationYear: getObservationLabel(lastObservationSnap, intl),
-      publicationYear: getObservationLabel(beforeLastObservationSnap, intl),
-      valueHAL,
-      valueNotHAL,
-    };
-
-    return {
-      comments,
-      dataGraph2,
-      publicationYears,
-    };
-  }
-
-  useEffect(() => {
-    async function getData() {
-      try {
-        const tempData = await GetData();
-        setData(tempData);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    getData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [beforeLastObservationSnap, lastObservationSnap]);
-
-  return { data, isError, isLoading };
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                setLoading(true);
+                setError(false);
+                const shaped = await getDataByObservationSnaps();
+                if (!cancelled) setData(shaped);
+            } catch (e) {
+                if (!cancelled) setError(true);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [beforeLastObservationSnap, lastObservationSnap, domain]);
+    return { data, isLoading, isError };
 }
-export default useGetData;
+export default useGetDataTest;
