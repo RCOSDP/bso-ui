@@ -290,6 +290,7 @@ export default function useFetch({ method, options, url }) {
             const repo_buckets = {
               key: 'HAL',
               doc_count: repo_data.jp_repo,
+              other_repo: repo_data.other_repo,
             };
             res.aggregations.by_repositories.buckets.push(repo_buckets);
           }

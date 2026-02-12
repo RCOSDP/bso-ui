@@ -248,11 +248,10 @@ export default function DataCardSection({ domain, lang }) {
           aggregations.by_is_oa.buckets[0].doc_count
           + aggregations.by_is_oa.buckets[1].doc_count,
         );
+        const hal = aggregations.by_repositories.buckets?.find((item) => item.key === 'HAL');
         setTotalHostedDocuments(
           formatNumberByLang(
-            aggregations.by_oa_colors.buckets?.find(
-              (item) => item.key === 'green',
-            )?.doc_count || 0,
+            (hal?.doc_count || 0) + (hal?.other_repo || 0),
             lang,
           ),
         );
