@@ -174,7 +174,8 @@ function useGetDataTest(beforeLastObservationSnap, lastObservationSnap, domain) 
             },
         ];
         const publicationYears = years;
-        return { publicationYears, dataGraph2 };
+        const observationYear = lastObservationSnap ? lastObservationSnap.substring(0, 4) : '';
+        return { publicationYears, dataGraph2, comments: { observationYear } };
     }
 
     useEffect(() => {
