@@ -127,10 +127,10 @@ export default function DataCardSection({ domain, lang }) {
       //   activeDomains: [],
       // },
       hostedDocument: {
-        fetch: (buckets) => formatNumberByLang(
-          buckets?.find((countObj) => countObj.key === 'HAL')?.doc_count || 0,
-          lang,
-        ),
+        fetch: (buckets) => {
+          const hal = buckets?.find((countObj) => countObj.key === 'HAL');
+          return formatNumberByLang(hal?.doc_count || 0, lang);
+        },
         get: hostedDocuments,
         set: (data) => setHostedDocuments(data),
         pathToValue: 'by_repositories.buckets',
@@ -251,7 +251,7 @@ export default function DataCardSection({ domain, lang }) {
         const hal = aggregations.by_repositories.buckets?.find((item) => item.key === 'HAL');
         setTotalHostedDocuments(
           formatNumberByLang(
-            hal?.total,
+            hal?.repo_total || 0,
             lang,
           ),
         );
