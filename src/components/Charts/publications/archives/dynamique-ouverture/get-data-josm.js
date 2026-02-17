@@ -190,7 +190,7 @@ function useGetData(observationSnaps, needle = '*', domain) {
                     buckets: [
                       { key: 1,
                         key_as_string: 'true',
-                        doc_count: item.oa
+                        doc_count: item.oa,
                       },
                     ],
                   },
@@ -210,7 +210,8 @@ function useGetData(observationSnaps, needle = '*', domain) {
                     buckets: [
                       { key: 1,
                         key_as_string: 'true',
-                        doc_count: item.total},
+                        doc_count: item.total,
+                      },
                       ],
                     },
                 })),
