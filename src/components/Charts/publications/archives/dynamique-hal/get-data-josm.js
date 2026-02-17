@@ -58,68 +58,99 @@ function useGetDataTest(beforeLastObservationSnap, lastObservationSnap, domain) 
         });
         lastDateOfYear.sort((a, b) => new Date(b) - new Date(a));
 
-        function buildRepoAggQuery({ calcDates, repoMode }) {
-            // repoMode: 'not_ja' | 'ja'
-            const baseBool = {
-                filter: [
-                    { terms: { calc_date: lastDateOfYear } },
-                    { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
-                ],
-            };
+        // 「日本のリポジトリ」の数値を取得
+        const jaRes = await Axios.post(ES_API_URL, {
+            size: 0,
+            query: {
+                bool: {
+                    filter: [
+                        { terms: { calc_date: lastDateOfYear } },
+                        { term: { data_type: 'archives.dynamique-ouverture.get-data' } },
+                        { term: { repository: 'ja-repository' } },
+                    ],
+                },
+            },
+            aggs: {
+                by_calc_date: {
+                    terms: { field: 'calc_date', size: 1, order: { _key: 'desc' } },
+                    aggs: {
+                        nested_data: {
+                            nested: { path: 'data' },
+                            aggs: {
+                                total_per_year: {
+                                    terms: { field: 'data.publication_year', size: 1000 },
+                                    aggs: { oa_sum: { sum: { field: 'data.oa' } } },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
 
-            if (repoMode === 'not_ja') {
-                baseBool.must_not = [{ term: { repository: 'ja-repository' } }];
-            } else if (repoMode === 'ja') {
-                baseBool.filter.push({ term: { repository: 'ja-repository' } });
-            }
-
-            return {
-                size: 0,
-                query: { bool: baseBool },
-                aggs: {
-                    by_calc_date: {
-                        terms: { field: 'calc_date', size: 1000, order: { _key: 'desc' } },
-                        aggs: {
-                            nested_data: {
-                                nested: { path: 'data' },
-                                aggs: {
-                                    total_per_year: {
-                                        terms: { field: 'data.publication_year', size: 1000 },
-                                        aggs: {
-                                            total_sum: { sum: { field: 'data.total' } },
-                                            oa_sum: { sum: { field: 'data.oa' } },
-                                        },
+        // 「分母（リポジトリ全体の合計）」を取得
+        const denominatorRes = await Axios.post(ES_API_URL, {
+            size: 0,
+            query: {
+                bool: {
+                    filter: [
+                        { terms: { calc_date: lastDateOfYear } },
+                        { term: { data_type: 'general.voies-ouverture.get-data' } },
+                    ],
+                },
+            },
+            aggs: {
+                by_calc_date: {
+                    terms: { field: 'calc_date', size: 1, order: { _key: 'desc' } },
+                    aggs: {
+                        nested_data: {
+                            nested: { path: 'data' },
+                            aggs: {
+                                total_per_year: {
+                                    terms: { field: 'data.publication_year', size: 1000 },
+                                    aggs: {
+                                        repository_sum: { sum: { field: 'data.repository' } },
+                                        both_sum: { sum: { field: 'data.publisher;repository' } },
                                     },
                                 },
                             },
                         },
                     },
                 },
-            };
-        }
-        const notJaRes = await Axios.post(
-            ES_API_URL,
-            buildRepoAggQuery({ lastDateOfYear, repoMode: 'not_ja' }),
-        );
+            },
+        });
 
-        const jaRes = await Axios.post(
-            ES_API_URL,
-            buildRepoAggQuery({ lastDateOfYear, repoMode: 'ja' }),
-        );
-
-        // データ整形
         const pickLatestBucket = (res) => res?.data?.aggregations?.by_calc_date?.buckets?.[0];
 
-        const toYearOaMap = (bucket) => {
-            const m = new Map();
-            const ys = bucket?.nested_data?.total_per_year?.buckets ?? [];
-            ys.forEach((b) => m.set(Number(b.key), b.oa_sum?.value ?? 0));
-            return m;
-        };
+        // 日本の機関リポジトリ
+        const jaOaMap = new Map();
+        (pickLatestBucket(jaRes)?.nested_data?.total_per_year?.buckets ?? []).forEach((b) => {
+            jaOaMap.set(Number(b.key), b.oa_sum?.value ?? 0);
+        });
 
-        const buildPoints = ({ years, absMap, denomMap }) => years.map((year) => {
+        // 分母（合計）
+        const denomMap = new Map();
+        (pickLatestBucket(denominatorRes)?.nested_data?.total_per_year?.buckets ?? []).forEach((b) => {
+            const totalRepoOA = (b.repository_sum?.value ?? 0) + (b.both_sum?.value ?? 0);
+            denomMap.set(Number(b.key), totalRepoOA);
+        });
+
+        // 日本の機関リポジトリ以外
+        const notJaOaMap = new Map();
+        const snapYear = parseInt(lastObservationSnap.substring(0, 4), 10);
+        const years = Array.from(new Set([...jaOaMap.keys(), ...denomMap.keys()]))
+            .filter((y) => y > 2012 && y < snapYear)
+            .sort((a, b) => a - b);
+
+        years.forEach((y) => {
+            const total = denomMap.get(y) ?? 0;
+            const ja = jaOaMap.get(y) ?? 0;
+            notJaOaMap.set(y, Math.max(0, total - ja));
+        });
+
+        const buildPoints = ({ yearsList, absMap, dMap }) => yearsList.map((year) => {
             const abs = absMap.get(year) ?? 0;
-            const tot = denomMap.get(year) ?? 0;
+            const tot = dMap.get(year) ?? 0;
             return {
                 x: year,
                 publicationDate: year,
@@ -130,28 +161,8 @@ function useGetDataTest(beforeLastObservationSnap, lastObservationSnap, domain) 
             };
         });
 
-        // --- jaRes/notJaRes から作る ---
-        const jaBucket = pickLatestBucket(jaRes);
-        const notJaBucket = pickLatestBucket(notJaRes);
-
-        const jaOaMap = toYearOaMap(jaBucket);
-        const notJaOaMap = toYearOaMap(notJaBucket);
-
-        // 年の全集合を作る
-        const snapYear = parseInt(lastObservationSnap.substring(0, 4), 10);
-
-        const years = Array.from(new Set([...jaOaMap.keys(), ...notJaOaMap.keys()]))
-            .filter((y) => y > 2012 && y < snapYear)
-            .sort((a, b) => a - b);
-
-        // 分母（全OA）Map を作る：denom(year) = jaOA + notJaOA
-        const denomMap = new Map(
-            years.map((y) => [y, (jaOaMap.get(y) ?? 0) + (notJaOaMap.get(y) ?? 0)]),
-        );
-
-        // hal / notHal の data 配列
-        const hal = buildPoints({ years, absMap: jaOaMap, denomMap });
-        const notHal = buildPoints({ years, absMap: notJaOaMap, denomMap });
+        const hal = buildPoints({ yearsList: years, absMap: jaOaMap, dMap: denomMap });
+        const notHal = buildPoints({ yearsList: years, absMap: notJaOaMap, dMap: denomMap });
 
         const dataGraph2 = [
             {
