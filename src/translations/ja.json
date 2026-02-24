@@ -38,7 +38,7 @@
   "app.type-diffusion": "結果の普及方法",
   "app.all-sponsors": "すべての主要スポンサー",
   "app.baro-national.detail-publi": "出版物に関する詳細情報",
-  "app.baro-national.intro": "オープンアクセスとは、研究成果である出版物を、技術的・財政的な障壁なく、誰もがオンラインで利用できるようにすることです。本モニターでは、著者の1名以上が日本の研究機関に所属する出版物を対象としています。オープンアクセス率は、特定の範囲（年、分野、出版者など）におけるオープンアクセス出版物の割合を示します。<linebreak></linebreak>研究成果がオープンアクセスとなることによって、学術コミュニティや一般社会へ広く普及し、新たな研究やイノベーションの創出につながることが期待されています。<linebreak></linebreak><linebreak></linebreak>Japan Open Science Monitorは、米OurResearchが提供するオープンデータカタログOpenAlexを主要なデータソースとしています。ただし、OpenAlexは日本の機関リポジトリの収録状況が十分ではないため、リポジトリ経由のオープンアクセス（特に国内リポジトリ分）の数値が実際よりも低く算出される傾向があります。より正確な指標を提供するため、今後、国立情報学研究所が提供する学術機関リポジトリデータベース（IRDB）とのデータ連携を進める予定です。",
+  "app.baro-national.intro": "オープンアクセスとは、研究成果である出版物を、技術的・財政的な障壁なく、誰もがオンラインで利用できるようにすることです。本モニターでは、著者の1名以上が日本の研究機関に所属する出版物を対象としています。オープンアクセス率は、特定の範囲（年、分野、出版者など）におけるオープンアクセス出版物の割合を示します。<linebreak></linebreak>研究成果がオープンアクセスとなることによって、学術コミュニティや一般社会へ広く普及し、新たな研究やイノベーションの創出につながることが期待されています。<linebreak></linebreak><linebreak></linebreak>Japan Open Science Monitorは、米OurResearchが提供するオープンデータカタログOpenAlexを主要なデータソースとしています。ただし、OpenAlexは日本の機関リポジトリの収録状況が十分ではないため、リポジトリ経由のオープンアクセス（特に国内リポジトリ分）の数値が実際よりも低く算出される傾向があります。より正確な指標を提供するため、今後、国立情報学研究所が提供する学術機関リポジトリデータベース（IRDB）とのデータ連携を進める予定です。<linebreak></linebreak><linebreak></linebreak>当サイトに掲載されているコンテンツは、ダウンロード可能なデータや図を含め、CC0により制限なく自由にご活用いただけます。",
   "app.baro-national.main-title": "出版物",
   "app.baro-national.publications.title": "出版物",
   "app.baro-national.today-title": "現在のJapan Open Science Monitor",
