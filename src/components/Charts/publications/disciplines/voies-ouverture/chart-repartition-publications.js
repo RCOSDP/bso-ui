@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
+import { IS_TEST } from '../../../../../config/config';
 import customComments from '../../../../../utils/chartComments';
 import { chartOptions } from '../../../../../utils/chartOptions';
 import { domains, graphIds } from '../../../../../utils/constants';
@@ -41,6 +42,89 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
   );
   const { categories, dataGraph } = allData;
 
+  // 複数個所でフックを用いるため関数化
+  function patchExportDataForFields(options) {
+    // 行側キー抽出: "<br>" 以降の装飾を落として正規化
+    const normalizeRowKey = (value) => {
+      const str = String(value ?? '');
+      const i = str.indexOf('<'); // "<br>" や他HTML装飾の先頭で分割
+      const head = i >= 0 ? str.slice(0, i) : str;
+      return head.trim().replace(/\s+/g, ' ').toLowerCase();
+    };
+
+    // 2) point側キー抽出: name -> category -> xAxis.categories[x] の順で取得し正規化
+    const makePointKeyGetter = (chart) => {
+      const xCats = chart?.xAxis?.[0]?.categories ?? null;
+      return (p) => {
+        if (!p) return '';
+        const name = p.name != null ? String(p.name) : null;
+        const cat = p.category != null ? String(p.category) : null;
+        const xcat = Number.isFinite(p.x) && xCats?.[p.x] != null ? String(xCats[p.x]) : null;
+        const raw = name ?? cat ?? xcat ?? '';
+        return normalizeRowKey(raw);
+      };
+    };
+
+    const handler = (e) => {
+      const rows = e?.dataRows;
+      if (!rows || rows.length <= 1) return;
+
+      const chart = e?.target;
+      const getPointKey = makePointKeyGetter(chart);
+
+      // 可視状態の指標についてグラフデータ取得
+      const seriesList = (chart?.series || []).filter((s) => s.visible !== false);
+
+      // ヘッダを追加
+      const header = rows[0];
+      seriesList.forEach((s) => header.push(`${s.name}_oa_count`));
+      header.push('total_count'); // ラベルは '総数' 等に変更可
+
+      // --- series ごとに「キー -> point」Map を構築 ---
+      const maps = seriesList.map((s) => {
+        const m = new Map();
+        (s?.points ?? []).forEach((p) => {
+          const k = getPointKey(p);
+          if (k) m.set(k, p);
+        });
+        return m;
+      });
+      const firstSeriesMap = maps[0] ?? new Map(); // 分母は先頭seriesから取得
+
+      // --- 各行をキーで照合して値を埋める ---
+      for (let r = 1; r < rows.length; r += 1) {
+        const row = rows[r];
+        const rowKey = normalizeRowKey(row?.[0]); // CSV 1列目（カテゴリ）
+
+        // 各 series の分子（y_abs）
+        maps.forEach((m) => {
+          const p = m.get(rowKey);
+          row.push(p?.y_abs ?? '');
+        });
+
+        // 分母（先頭 series の y_tot）
+        const p0 = firstSeriesMap.get(rowKey);
+        row.push(p0?.y_tot ?? '');
+      }
+      if (IS_TEST) {
+        console.log('CSV_value:', rows); // eslint-disable-line no-console
+      }
+    };
+
+    // パッチ済みの option オブジェクトを返却
+    return {
+      ...options,
+      exporting: { ...(options?.exporting ?? {}), enabled: false }, // // ハンバーガーメニュー非表示
+      chart: {
+        ...(options?.chart ?? {}),
+        events: {
+          ...((options?.chart && options.chart.events) ?? {}),
+          exportData: handler,
+        },
+      },
+    };
+  }
+
   useEffect(() => {
     setDataTitle({
       publicationYear: getObservationLabel(beforeLastObservationSnap, intl),
@@ -62,16 +146,16 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
       .concat(' = ')
       .concat(cleanNumber(item.staff))
       .concat(')')) || [];
-    setOptionsGraph(
-      chartOptions[id].getOptions(
-        idWithDomain,
-        intl,
-        categoriesLabel,
-        dataGraph,
-        dataTitle,
-        sortKey,
-      ),
+    const base = chartOptions[id].getOptions(
+      idWithDomain,
+      intl,
+      categoriesLabel,
+      dataGraph,
+      dataTitle,
+      sortKey,
     );
+    const patched = patchExportDataForFields(base);
+    setOptionsGraph(patched);
     setChartComments(customComments(allData, idWithDomain, intl));
   }, [allData, categories, dataGraph, dataTitle, id, idWithDomain, intl, sort]);
 
@@ -91,16 +175,16 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
         isInline
         legend={intl.formatMessage({ id: 'app.publi.sort' })}
         onChange={(newValue) => {
-          setOptionsGraph(
-            chartOptions[id].getOptions(
-              idWithDomain,
-              intl,
-              [],
-              [],
-              dataTitle,
-              'y_tot',
-            ),
+          const base = chartOptions[id].getOptions(
+            idWithDomain,
+            intl,
+            [],
+            [],
+            dataTitle,
+            'y_tot',
           );
+          const patched = patchExportDataForFields(base);
+          setOptionsGraph(patched);
           setSort(newValue);
         }}
         value={sort}

@@ -393,9 +393,14 @@ function useGetData(observationSnaps, needle = '*', domain) {
             : needle,
         ratio: el.ratios[el.data.length - 1],
         publicationDate: el.publicationDate,
+        // 描画用データに実数を追加
+        y_abs: el.data.length ? el.data[el.data.length - 1].y_abs : '',
+        y_tot: el.data.length ? el.data[el.data.length - 1].y_tot : '',
       }))
       .filter((el) => el.y > 0);
-
+    if (IS_TEST) {
+      console.log('dynamique-ouverture_dataGraph1:', dataGraph1); // eslint-disable-line no-console
+    }
     const allYearsSet = new Set();
     dataGraph2.forEach((serie) => {
       serie.data.forEach((item) => {
@@ -415,15 +420,15 @@ function useGetData(observationSnaps, needle = '*', domain) {
           const d = yearDataMap[year];
           return {
             ...d,
-            y: Number.isFinite(d.y) ? d.y : 0,
-            y_tot: d.y_tot ?? 0,
-            y_abs: d.y_abs ?? 0,
+            y: Number.isFinite(d.y) ? d.y : '',
+            y_tot: d.y_tot ?? '',
+            y_abs: d.y_abs ?? '',
           };
         }
         return {
-          y: 0,
-          y_tot: 0,
-          y_abs: 0,
+          y: '',
+          y_tot: '',
+          y_abs: '',
           bsoDomain: serie.data[0]?.bsoDomain,
           publisher: serie.data[0]?.publisher,
           name: serie.name,

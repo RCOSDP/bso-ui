@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
-import { ES_API_URL, HEADERS } from '../../../../../config/config';
+import { ES_API_URL, HEADERS, IS_TEST } from '../../../../../config/config';
 import { PUBLISHER_LIST } from '../../../../../config/publicationDataLists';
 import customComments from '../../../../../utils/chartComments';
 import getFetchOptions from '../../../../../utils/chartFetchOptions';
@@ -51,6 +51,35 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
     dataGraphTreemap,
     dataTitle,
   );
+
+  // ハンバーガーメニュー非表示
+  optionsGraph.exporting = { ...(optionsGraph.exporting || {}), enabled: false };
+
+  // CSV出力直前フック
+  optionsGraph.chart.events.exportData = (e) => {
+    const rows = e?.dataRows;
+    if (!rows || rows.length === 0) return;
+    const header = rows[0];
+    // ヘッダー作成
+    header.splice(1, 0, 'proportion');
+    header[2] = 'oa_count';
+    header.push('total_count');
+
+    const points = e.target?.series?.[0]?.points ?? [];
+    for (let r = 1; r < rows.length; r += 1) {
+      const row = rows[r];
+      const p = points[r - 1];
+      const oa = p?.y_abs ?? row?.[1] ?? '';
+      const tot = p?.y_tot ?? '';
+      const perc = p?.y_perc ?? '';
+      row.splice(1, 0, perc);
+      row[2] = oa;
+      row.push(tot);
+    }
+    if (IS_TEST) {
+      console.log('CSV_value:', rows); // eslint-disable-line no-console
+    }
+  };
 
   useEffect(() => {
     setChartComments(customComments(data, idWithDomain, intl));
