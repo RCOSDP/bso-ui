@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
+import { IS_TEST } from '../../../../../config/config';
 import customComments from '../../../../../utils/chartComments';
 import { chartOptions } from '../../../../../utils/chartOptions';
 import { domains, graphIds } from '../../../../../utils/constants';
@@ -34,6 +35,30 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
     intl,
     dataGraph1,
   );
+
+  // ハンバーガーメニュー非表示
+  optionsGraph.exporting = { ...(optionsGraph.exporting || {}), enabled: false };
+  
+  // CSV出力直前フック
+  optionsGraph.chart.events.exportData = (e) => {
+    const rows = e?.dataRows;
+    if (!rows || rows.length === 0) return;
+  
+    // ヘッダを追加
+    rows[0].push('oa_count', 'total_count');
+  
+    // グラフデータ取得
+    const points = e.target?.series?.[0]?.points ?? [];
+  
+    // データ出力
+    for (let r = 1; r < rows.length; r += 1) {
+      const p = points[r - 1];
+      rows[r].push(p?.y_abs ?? '', p?.y_tot ?? '');
+    }
+    if (IS_TEST) {
+      console.log('CSV_value:', rows); // eslint-disable-line no-console
+    }
+  };
 
   useEffect(() => {
     setChartComments(customComments(data, idWithDomain, intl));

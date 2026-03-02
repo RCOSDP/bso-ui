@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 // import { ES_API_URL, HEADERS } from '../../../../../config/config';
-import { ES_API_URL } from '../../../../../config/config';
+import { ES_API_URL, IS_TEST } from '../../../../../config/config';
 // import getFetchOptions from '../../../../../utils/chartFetchOptions';
 import {
     capitalize,
@@ -120,6 +120,10 @@ function useGetDataTest(beforeLastObservationSnap, lastObservationSnap, domain) 
             },
         });
 
+        if (IS_TEST) {
+            // eslint-disable-next-line no-console
+            console.log('dynamique-hal_preRes', { jaRes, denominatorRes });
+        }
         const pickLatestBucket = (res) => res?.data?.aggregations?.by_calc_date?.buckets?.[0];
 
         // 日本の機関リポジトリ
@@ -184,6 +188,10 @@ function useGetDataTest(beforeLastObservationSnap, lastObservationSnap, domain) 
                 color: getCSSValue('--acces-ouvert'),
             },
         ];
+        if (IS_TEST) {
+            // eslint-disable-next-line no-console
+            console.log('dynamique-hal_res', dataGraph2);
+        }
         const publicationYears = years;
         const observationYear = lastObservationSnap ? lastObservationSnap.substring(0, 4) : '';
         return { publicationYears, dataGraph2, comments: { observationYear } };

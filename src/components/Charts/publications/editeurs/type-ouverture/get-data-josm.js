@@ -176,6 +176,9 @@ function useGetData(observationSnap, domain) {
         ),
         data: otherData,
         color: getCSSValue('--orange-soft-100'),
+        // 描画用データに実数を追加
+        y_tot: otherData[otherData.length - 1].y_tot,
+        y_abs: otherData[otherData.length - 1].y_abs,
       },
       {
         name: capitalize(
@@ -185,6 +188,9 @@ function useGetData(observationSnap, domain) {
         ),
         data: hybridData,
         color: getCSSValue('--hybrid'),
+        // 描画用データに実数を追加
+        y_tot: hybridData[hybridData.length - 1].y_tot,
+        y_abs: hybridData[hybridData.length - 1].y_abs,
       },
       {
         name: capitalize(
@@ -194,6 +200,9 @@ function useGetData(observationSnap, domain) {
         ),
         data: goldData,
         color: getCSSValue('--yellow-medium-100'),
+        // 描画用データに実数を追加
+        y_tot: goldData[goldData.length - 1].y_tot,
+        y_abs: goldData[goldData.length - 1].y_abs,
       },
       {
         name: capitalize(
@@ -203,8 +212,14 @@ function useGetData(observationSnap, domain) {
         ),
         data: diamondData,
         color: getCSSValue('--diamond'),
+        // 描画用データに実数を追加
+        y_tot: diamondData[diamondData.length - 1].y_tot,
+        y_abs: diamondData[diamondData.length - 1].y_abs,
       },
     ];
+    if (IS_TEST) {
+      console.log('dynamique-ouverture_dataGraph:', dataGraph); // eslint-disable-line no-console
+    }
 
     const dataGraphTreemap = [
       {

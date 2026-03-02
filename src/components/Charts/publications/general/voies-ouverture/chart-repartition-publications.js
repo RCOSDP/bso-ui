@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
+import { IS_TEST } from '../../../../../config/config';
 import customComments from '../../../../../utils/chartComments';
 import { chartOptions } from '../../../../../utils/chartOptions';
 import { domains, graphIds } from '../../../../../utils/constants';
@@ -43,6 +44,34 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
     dataGraph3,
     dataTitle,
   );
+
+  // ハンバーガーメニュー非表示
+  optionsGraph.exporting = { ...(optionsGraph.exporting || {}), enabled: false };
+  // CSV出力直前フック
+  optionsGraph.chart.events.exportData = (e) => {
+    const rows = e?.dataRows;
+    if (!rows || rows.length === 0) return;
+    const header = rows[0];
+    // ヘッダー作成
+    header.splice(1, 0, 'proportion');
+    header[2] = 'oa_count';
+    header.push('total_count');
+
+    const points = e.target?.series?.[0]?.points ?? [];
+    for (let r = 1; r < rows.length; r += 1) {
+      const row = rows[r];
+      const p = points[r - 1];
+      const oa = p?.value ?? row?.[1] ?? '';
+      const perc = p?.percentage ?? '';
+      const tot = (oa * 100) / perc;
+      row.splice(1, 0, perc);
+      row[2] = oa;
+      row.push(tot);
+    }
+    if (IS_TEST) {
+      console.log('CSV_value:', rows); // eslint-disable-line no-console
+    }
+  };
 
   useEffect(() => {
     setChartComments(customComments(allData, idWithDomain, intl));
