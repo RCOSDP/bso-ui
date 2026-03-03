@@ -348,6 +348,9 @@ function useGetData(observationSnaps, needle = '*', domain) {
         archive,
         ratio: el.ratios[el.data.length - 1],
         publicationDate: el.publicationDate,
+        // 描画用データに実数を追加
+        y_abs: el.data.length ? el.data[el.data.length - 1].y_abs : '',
+        y_tot: el.data.length ? el.data[el.data.length - 1].y_tot : '',
       }));
     // .filter((el) => el.y > 0);
 
@@ -377,9 +380,9 @@ function useGetData(observationSnaps, needle = '*', domain) {
           };
         }
         return {
-          y: 0,
-          y_tot: 0,
-          y_abs: 0,
+          y: '',
+          y_tot: '',
+          y_abs: '',
           bsoDomain: serie.data[0]?.bsoDomain,
           archive: serie.data[0]?.archive,
           name: serie.name,
