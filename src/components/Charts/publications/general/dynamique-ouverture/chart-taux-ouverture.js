@@ -38,18 +38,18 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
 
   // ハンバーガーメニュー非表示
   optionsGraph.exporting = { ...(optionsGraph.exporting || {}), enabled: false };
-  
+
   // CSV出力直前フック
   optionsGraph.chart.events.exportData = (e) => {
     const rows = e?.dataRows;
     if (!rows || rows.length === 0) return;
-  
+
     // ヘッダを追加
     rows[0].push('oa_count', 'total_count');
-  
+
     // グラフデータ取得
     const points = e.target?.series?.[0]?.points ?? [];
-  
+
     // データ出力
     for (let r = 1; r < rows.length; r += 1) {
       const p = points[r - 1];
