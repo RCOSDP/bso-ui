@@ -63,7 +63,6 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
         });
       });
     }
-    /* eslint-enable no-param-reassign */
     setOptionsGraph(
       chartOptions[id].getOptions(
         idWithDomain,

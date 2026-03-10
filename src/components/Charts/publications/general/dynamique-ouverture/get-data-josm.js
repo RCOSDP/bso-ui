@@ -272,11 +272,17 @@ function useGetData(
             bsoDomain,
             name: el.name,
             y: y?.y ?? 0,
+            // 描画用データに実数を追加
+            y_abs: y?.y_abs ?? '',
+            y_tot: y?.y_tot ?? '',
             ratio,
             publicationDate,
           });
         }
       });
+      if (IS_TEST) {
+        console.log('dynamique-ouverture_serie1:', serie1); // eslint-disable-line no-console
+      }
       dataGraphGlobal.forEach((el) => {
         if (el.lastPublicationDate) {
           serieGlobal.push({

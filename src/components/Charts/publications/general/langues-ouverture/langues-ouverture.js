@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
+import { IS_TEST } from '../../../../../config/config';
 import customComments from '../../../../../utils/chartComments';
 import { chartOptions } from '../../../../../utils/chartOptions';
 import { domains, graphIds } from '../../../../../utils/constants';
@@ -40,6 +41,41 @@ const Chart = ({ domain, hasComments, hasFooter, id }) => {
     dataGraph,
     dataTitle,
   );
+
+  // ハンバーガーメニュー非表示
+  optionsGraph.exporting = { ...(optionsGraph.exporting || {}), enabled: false };
+
+  // CSV出力直前フック
+  optionsGraph.chart.events.exportData = (e) => {
+    const rows = e?.dataRows;
+    if (!rows || rows.length <= 1) return;
+
+    const chart = e.target;
+
+    // 可視状態の指標についてグラフデータ取得
+    const seriesList = (chart.series || []).filter((s) => s.visible !== false);
+
+    // ヘッダを追加
+    const header = rows[0];
+    seriesList.forEach((s) => header.push(`${s.name}_oa_count`));
+    header.push('total_count');
+
+    // データ出力
+    rows.slice(1).forEach((row, idx) => {
+      const r = idx + 1; // rows[0] はヘッダ
+      // 分子（各 series の y_abs）
+      seriesList.forEach((s) => {
+        const p = s?.points?.[r - 1];
+        row.push(p?.y_abs ?? '');
+      });
+      // 分母（カテゴリ内で1つ）：先頭 series の y_tot を採用
+      const p0 = seriesList?.[0]?.points?.[r - 1];
+      row.push(p0?.y_tot ?? '');
+    });
+    if (IS_TEST) {
+      console.log('CSV_value:', rows); // eslint-disable-line no-console
+    }
+  };
 
   useEffect(() => {
     setChartComments(customComments(allData, idWithDomain, intl));
