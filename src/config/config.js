@@ -14,3 +14,4 @@ export const HEADERS = {
 };
 
 export const IS_TEST = false;
+export const SHOW_MAINTENANCE_NOTICE = true;

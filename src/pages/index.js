@@ -15,6 +15,7 @@ import ScrollTop from '../components/ScrollTop';
 import TodayNumbersSection from '../components/TodayNumbersSection';
 import TodayNumbersItem from '../components/TodayNumbersSection/TodayNumbersItem';
 import UpdateDate from '../components/UpdateDate';
+import { SHOW_MAINTENANCE_NOTICE } from '../config/config';
 import GlossaryEntries from '../translations/glossary.json';
 import useLang from '../utils/Hooks/useLang';
 
@@ -93,6 +94,11 @@ const HomePage = () => {
         <section className='content'>
           <Row>
             <Col n='12'>
+              {SHOW_MAINTENANCE_NOTICE && (
+                <div style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '1rem', borderRadius: '4px', marginBottom: '2rem', border: '1px solid #ffeeba' }}>
+                  <FormattedMessage id='app.maintenance-notice' />
+                </div>
+              )}
               <section className='pb-48'>
                 <h2 className='notosans-bold fs-24-36 fs-45-63-xl m-0'>
                   <FormattedMessage id='app.national-home.numbers' />
