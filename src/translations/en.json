@@ -691,6 +691,7 @@
   "app.link.github": "The BSO source code is organized in several modules, notably one for the enrichment of publications metadata (bso-publications), one concerning clinical trials and observational studies (bso-clinical-trials) and finally one for the website front-end (bso-ui)",
   "app.link.github.code-projet": "Project source code on Github",
   "app.na": "Unknown",
+  "app.maintenance-notice": "Due to system maintenance, the service will be unavailable for up to 30 minutes starting at around 14:00 on March 25.\nWe apologize for any inconvenience and appreciate your understanding.",
   "app.national-home.numbers": "The key figures",
   "app.national-publi.data.costs": "Expenditures estimated for the international scientific community, in PCA for production with at least one French affiliation",
   "app.national-publi.data.french-lang": "open publications are in French language",

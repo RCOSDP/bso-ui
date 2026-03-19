@@ -692,6 +692,7 @@
   "app.link.github": "（不使用）BSOのソースコードは、いくつかのモジュールに整理されています。特に、出版物のメタデータを豊かにするためのモジュール（bso-publications）、臨床試験および観察研究に関するモジュール（bso-clinical-trials）、そして最後にウェブサイトのフロントエンドに関するモジュール（bso-ui）があります。",
   "app.link.github.code-projet": "GitHub上のプロジェクトソースコード",
   "app.na": "不明",
+  "app.maintenance-notice": "システムメンテナンスの実施に伴い、3月25日14時頃より最大30分程度、サービスにアクセスできない時間帯が発生いたします。ご不便をおかけしますが、あらかじめご了承ください。",
   "app.national-home.numbers": "主要な指標",
   "app.national-publi.data.costs": "フランスの所属を持つ少なくとも1つの生産に対する国際科学コミュニティのために推定される支出、PCAにおいて",
   "app.national-publi.data.french-lang": "オープン出版物はフランス語です。",
