@@ -48,15 +48,6 @@ export default function DataCardSection({ domain, lang }) {
   const { data: allRepositoryData, isError: allRepositoryError, isLoading: allRepositoryLoading } = useGetDataRepository(observationSnaps, '*', domain);
   const { data: jaRepositoryData, isError: jaRepositoryError, isLoading: jaRepositoryLoading } = useGetDataRepository(observationSnaps, 'ja-repository', domain);
 
-  // 確認用ログ（後で消す）
-  console.log('lastObservationSnap:', lastObservationSnap); // eslint-disable-line no-console
-  console.log('observationSnaps:', observationSnaps); // eslint-disable-line no-console
-  console.log('domain', domain); // eslint-disable-line no-console
-  console.log('dynamiqueData:', dynamiqueData); // eslint-disable-line no-console
-  console.log('proportionData:', proportionData); // eslint-disable-line no-console
-  console.log('allRepositoryData:', allRepositoryData); // eslint-disable-line no-console
-  console.log('jaRepositoryData:', jaRepositoryData); // eslint-disable-line no-console
-
   const dataObj = useMemo(
     () => ({
       openPublicationRate: {
@@ -274,7 +265,7 @@ export default function DataCardSection({ domain, lang }) {
         //   || 0;
         // setOaBooksRate(((oaBooksCount / booksCount) * 100).toFixed(0));
 
-        // proportionData.seriesでkeyがbookのオブジェクトデータから、最新のオブジェクトを取得して図書のOA率を算出してセット
+        // proportionDataから、最新の図書のOA率を取得してセット
         const bookData = proportionData?.series?.find((item) => item.key === 'book') || {};
         const lastBookData = bookData?.data?.[bookData.data.length - 1] || {};
         setOaBooksRate(lastBookData.y.toFixed(0));
