@@ -1,5 +1,4 @@
 import { Col, Container, Row } from '@dataesr/react-dsfr';
-import Axios from 'axios';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -14,6 +13,9 @@ import {
 } from '../../utils/helpers';
 import useFetch from '../../utils/Hooks/useFetch';
 import useGlobals from '../../utils/Hooks/useGetGlobals';
+import useGetDataRepository from '../Charts/publications/archives/dynamique-ouverture/get-data-josm';
+import useGetDataDynamique from '../Charts/publications/general/dynamique-ouverture/get-data-josm';
+import useGetDataProportion from '../Charts/publications/general/genres-ouverture/get-data-proportion-josm';
 import DataCard from '../DataCard';
 
 export default function DataCardSection({ domain, lang }) {
@@ -30,7 +32,7 @@ export default function DataCardSection({ domain, lang }) {
   const [openPublicationRate, setOpenPublicationRate] = useState(null);
   const [publicationsNumber, setPublicationsNumber] = useState(null);
   const [totalHostedDocuments, setTotalHostedDocuments] = useState(null);
-  const { lastObservationSnap } = useGlobals();
+  const { observationSnaps, lastObservationSnap } = useGlobals();
   const {
     fetch: fetchData,
     response,
@@ -40,16 +42,35 @@ export default function DataCardSection({ domain, lang }) {
     url: ES_API_URL,
   });
 
+  // 関連するグラフで使用しているメソッドを用いてデータを取得
+  const { data: dynamiqueData, isError: dynamiqueError, isLoading: dynamiqueLoading } = useGetDataDynamique(observationSnaps, domain);
+  const { allData: proportionData, isError: proportionError, isLoading: proportionLoading } = useGetDataProportion(lastObservationSnap, domain);
+  const { data: allRepositoryData, isError: allRepositoryError, isLoading: allRepositoryLoading } = useGetDataRepository(observationSnaps, '*', domain);
+  const { data: jaRepositoryData, isError: jaRepositoryError, isLoading: jaRepositoryLoading } = useGetDataRepository(observationSnaps, 'ja-repository', domain);
+
+  // 確認用ログ（後で消す）
+  console.log('lastObservationSnap:', lastObservationSnap); // eslint-disable-line no-console
+  console.log('observationSnaps:', observationSnaps); // eslint-disable-line no-console
+  console.log('domain', domain); // eslint-disable-line no-console
+  console.log('dynamiqueData:', dynamiqueData); // eslint-disable-line no-console
+  console.log('proportionData:', proportionData); // eslint-disable-line no-console
+  console.log('allRepositoryData:', allRepositoryData); // eslint-disable-line no-console
+  console.log('jaRepositoryData:', jaRepositoryData); // eslint-disable-line no-console
+
   const dataObj = useMemo(
     () => ({
       openPublicationRate: {
         fetch: (buckets) => (
           Math.round(
-            (buckets.find((countObj) => countObj.key === 1).doc_count
-                / publicationsNumber)
-                * 100
-                * 10,
-          ) / 10
+          // 出版物の種類ごとのオープンアクセス率の不整合解消のため、既存処理をコメントアウトして修正
+          //   (buckets.find((countObj) => countObj.key === 1).doc_count
+          //       / publicationsNumber)
+          //       * 100
+          //       * 10,
+          // ) / 10
+            ((dynamiqueData?.dataGraph1?.series[0]?.data?.find((item) => String(item.name) === String(lastObservationSnap))?.y_abs || 0) * 100)
+              / publicationsNumber,
+          )
         ).toFixed(0),
         get: openPublicationRate,
         set: (data) => setOpenPublicationRate(data),
@@ -73,11 +94,15 @@ export default function DataCardSection({ domain, lang }) {
       },
       documentsByTypesByOA: {
         fetch: (buckets) => {
-          const articles = buckets?.find((item) => item.key === 'journal-article') || [];
-          const articlesCount = articles?.doc_count || 0;
-          const oaArticlesCount = articles?.by_is_oa.buckets?.find((item) => item.key === 1)
-            ?.doc_count || 0;
-          return `${((oaArticlesCount / articlesCount) * 100).toFixed(0)} %`;
+          // 出版物の種類ごとのオープンアクセス率の不整合解消のため、既存処理をコメントアウトして修正
+          // const articles = buckets?.find((item) => item.key === 'journal-article') || [];
+          // const articlesCount = articles?.doc_count || 0;
+          // const oaArticlesCount = articles?.by_is_oa.buckets?.find((item) => item.key === 1)
+          //   ?.doc_count || 0;
+          // return `${((oaArticlesCount / articlesCount) * 100).toFixed(0)} %`;
+          const articleData = proportionData?.series?.find((item) => item.key === 'journal-article') || {};
+          const lastArticleData = articleData?.data?.[articleData.data.length - 1] || {};
+          return `${(lastArticleData.y.toFixed(0))} %`;
         },
         get: documentsByTypesByOA,
         set: (data) => setDocumentsByTypesByOA(data),
@@ -128,8 +153,11 @@ export default function DataCardSection({ domain, lang }) {
       // },
       hostedDocument: {
         fetch: (buckets) => {
-          const hal = buckets?.find((countObj) => countObj.key === 'HAL');
-          return formatNumberByLang(hal?.doc_count || 0, lang);
+          // リポジトリのオープンアクセス率の不整合解消のため、既存処理をコメントアウトして修正
+          // const hal = buckets?.find((countObj) => countObj.key === 'HAL');
+          // return formatNumberByLang(hal?.doc_count || 0, lang);
+          const jaRepositoryOaData = jaRepositoryData?.dataGraph1?.find((item) => String(item.name) === String(lastObservationSnap)) || {};
+          return formatNumberByLang(jaRepositoryOaData?.y_abs || 0, lang);
         },
         get: hostedDocuments,
         set: (data) => setHostedDocuments(data),
@@ -237,24 +265,51 @@ export default function DataCardSection({ domain, lang }) {
     if (response) {
       const { aggregations } = response;
       if (!publicationsNumber) {
-        const books = aggregations?.by_genre?.buckets?.find(
-          (item) => item.key === 'book',
-        ) || [];
-        const booksCount = books?.doc_count || 0;
-        const oaBooksCount = books?.by_is_oa?.buckets?.find((item) => item.key === 1)?.doc_count
-          || 0;
-        setOaBooksRate(((oaBooksCount / booksCount) * 100).toFixed(0));
-        setPublicationsNumber(
-          aggregations.by_is_oa.buckets[0].doc_count
-          + aggregations.by_is_oa.buckets[1].doc_count,
-        );
-        const hal = aggregations.by_repositories.buckets?.find((item) => item.key === 'HAL');
-        setTotalHostedDocuments(
-          formatNumberByLang(
-            hal?.repo_total || 0,
-            lang,
-          ),
-        );
+        // 出版物の種類ごとのオープンアクセス率の不整合解消のため、既存処理をコメントアウトして修正
+        // const books = aggregations?.by_genre?.buckets?.find(
+        //   (item) => item.key === 'book',
+        // ) || [];
+        // const booksCount = books?.doc_count || 0;
+        // const oaBooksCount = books?.by_is_oa?.buckets?.find((item) => item.key === 1)?.doc_count
+        //   || 0;
+        // setOaBooksRate(((oaBooksCount / booksCount) * 100).toFixed(0));
+
+        // proportionData.seriesでkeyがbookのオブジェクトデータから、最新のオブジェクトを取得して図書のOA率を算出してセット
+        const bookData = proportionData?.series?.find((item) => item.key === 'book') || {};
+        const lastBookData = bookData?.data?.[bookData.data.length - 1] || {};
+        setOaBooksRate(lastBookData.y.toFixed(0));
+
+        // 全体オープンアクセス率の不整合解消のため、既存処理をコメントアウトして修正
+        // setPublicationsNumber(
+        //   aggregations.by_is_oa.buckets[0].doc_count
+        //   + aggregations.by_is_oa.buckets[1].doc_count,
+        // );
+
+        // dynamiqueDataから最新のデータを取得してセット
+        if (dynamiqueData?.dataGraph1?.series?.[0]?.data && lastObservationSnap) {
+          setPublicationsNumber(
+            dynamiqueData.dataGraph1.series[0].data.find((item) => String(item.name) === String(lastObservationSnap))?.y_tot || 0,
+          );
+        }
+
+        // リポジトリのオープンアクセス率の不整合解消のため、既存処理をコメントアウトして修正
+        // const hal = aggregations.by_repositories.buckets?.find((item) => item.key === 'HAL');
+        // setTotalHostedDocuments(
+        //   formatNumberByLang(
+        //     hal?.repo_total || 0,
+        //     lang,
+        //   ),
+        // );
+
+        // allRepositoryDataから全リポジトリでOAである最新の日本出版物データを取得してセット
+        if (allRepositoryData?.dataGraph1 && lastObservationSnap) {
+          setTotalHostedDocuments(
+            formatNumberByLang(
+              allRepositoryData.dataGraph1.find((item) => String(item.name) === String(lastObservationSnap))?.y_abs || 0,
+              lang,
+            ),
+          );
+        }
       }
       updateData(aggregations);
     }
