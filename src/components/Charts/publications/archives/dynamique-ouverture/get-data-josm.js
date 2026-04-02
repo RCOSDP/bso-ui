@@ -152,6 +152,9 @@ function useGetData(observationSnaps, needle = '*', domain) {
             ],
           },
         },
+        sort: [
+          { calc_date: { order: 'desc' } },
+        ],
       });
 
       const preSource = preResHits.data.hits.hits.map((hit) => {
@@ -168,12 +171,12 @@ function useGetData(observationSnaps, needle = '*', domain) {
       });
 
       preRes = {
-      data: {
-        hits: {
-          hits: preSource,
+        data: {
+          hits: {
+            hits: preSource,
+          },
         },
-      },
-    };
+      };
   }
 
     let responses;
