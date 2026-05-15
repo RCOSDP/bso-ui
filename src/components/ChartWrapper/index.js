@@ -33,6 +33,8 @@ function ChartWrapper({
   id,
   isError,
   isLoading,
+  onDisciplinesDownloadCSV,
+  onDisciplinesDownloadPNG,
   studyType,
 }) {
   const { lang } = useLang();
@@ -68,8 +70,10 @@ function ChartWrapper({
     setHeight(chartRef?.current?.chart?.chartHeight || 600);
   }, [chartRef]);
 
-  const exportChartPng = () => {
-    if (chartRef.current) {
+  const exportChartPng = async () => {
+    if (onDisciplinesDownloadPNG) {
+      await onDisciplinesDownloadPNG();
+    } else if (chartRef.current) {
       chartRef.current.chart.exportChart(
         {
           filename: title,
@@ -86,8 +90,12 @@ function ChartWrapper({
       name: `png_${title}`,
     });
   };
-  const exportChartCsv = () => {
-    chartRef.current.chart.downloadCSV();
+  const exportChartCsv = async () => {
+    if (onDisciplinesDownloadCSV) {
+      await onDisciplinesDownloadCSV();
+    } else if (chartRef.current) {
+      chartRef.current.chart.downloadCSV();
+    }
     trackEvent({
       category: 'export',
       action: 'export-graph-csv',
@@ -150,6 +158,8 @@ ChartWrapper.defaultProps = {
   hasFooter: true,
   isError: false,
   isLoading: false,
+  onDisciplinesDownloadCSV: null,
+  onDisciplinesDownloadPNG: null,
   studyType: '',
 };
 
@@ -170,6 +180,8 @@ ChartWrapper.propTypes = {
   id: PropTypes.oneOf(graphIds).isRequired,
   isError: PropTypes.bool,
   isLoading: PropTypes.bool,
+  onDisciplinesDownloadCSV: PropTypes.func,
+  onDisciplinesDownloadPNG: PropTypes.func,
   studyType: PropTypes.oneOf(studiesTypes),
 };
 
