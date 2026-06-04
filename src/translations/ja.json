@@ -703,6 +703,8 @@
   "app.national-publi.disciplines.dynamique-ouverture.description": "出版物のオープンアクセス状況は、分野によって大きく異なり、学術コミュニティの慣習や実践に依存します。天文学や数学のような分野は、長い間出版物をオープンアクセスで公開してきた伝統がありますが、化学や基礎生物学のような分野はより最近になってオープンアクセスが進んでいます。また、観測に利用するデータソースも結果に影響を与えます。特に人文社会学系分野では、現在のJapan Open Science Monitorで捕捉できない出版物が多く存在することに留意してください。",
   "app.health-publi.disciplines.dynamique-ouverture.description": "（不使用）",
   "app.national-publi.disciplines.dynamique-ouverture.chart-taux-ouverture.title": "前年の出版物の分野別のオープンアクセス率（分野はオープンアクセス率が高い順に表示）",
+  "app.national-publi.disciplines.dynamique-ouverture.chart-taux-ouverture.export.basename": "前年の出版物の分野別のオープンアクセス率",
+  "app.national-publi.disciplines.dynamique-ouverture.chart-taux-ouverture.export.column.rate": "オープンアクセス",
   "app.health-publi.disciplines.dynamique-ouverture.chart-taux-ouverture.title": "（不使用）",
   "app.national-publi.disciplines.dynamique-ouverture.chart-taux-ouverture.tooltip": "{series.name}の<br>出版物のうち<b>{point.y:.2f}%</b> ({point.y_abs} / {point.y_tot}) が<br>{point.name}年時点でオープンアクセスです。",
   "app.health-publi.disciplines.dynamique-ouverture.chart-taux-ouverture.tooltip": "（不使用）",
