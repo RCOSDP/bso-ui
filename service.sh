@@ -24,6 +24,7 @@ function start_application() {
         --network "$NETWORK_NAME" \
         -p "$PORT:3000" \
         -v "$PROJECT_DIR:/app" \
+        -v /app/node_modules \
         --log-driver=syslog \
         --log-opt syslog-address=udp://localhost:514 \
         --log-opt syslog-facility=local0 \
