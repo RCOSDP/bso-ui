@@ -74,9 +74,7 @@ function useGetData(observationSnaps, isDetailed, needle = '*', domain = '') {
               path: 'data',
               query: {
                 bool: {
-                  must: [
-                    { term: { 'data.publication_year': targetYear } },
-                  ],
+                  must: [{ term: { 'data.publication_year': targetYear } }],
                 },
               },
             },
@@ -124,76 +122,141 @@ function useGetData(observationSnaps, isDetailed, needle = '*', domain = '') {
 
     let res;
     if (observationYears) {
-    // 成形処理
-    res = [{
-      data: {
-        aggregations: {
-          by_is_oa: {
-            doc_count_error_upper_bound: 0,
-            sum_other_doc_count: 0,
-            buckets: [],
-          },
-          by_publisher: {
-            doc_count_error_upper_bound: 0,
-            sum_other_doc_count: 0,
-            buckets: [],
+      // 成形処理
+      res = [
+        {
+          data: {
+            aggregations: {
+              by_is_oa: {
+                doc_count_error_upper_bound: 0,
+                sum_other_doc_count: 0,
+                buckets: [],
+              },
+              by_publisher: {
+                doc_count_error_upper_bound: 0,
+                sum_other_doc_count: 0,
+                buckets: [],
+              },
+            },
           },
         },
-      },
-    }];
+      ];
 
-    const byIsOaBuckets = res[0].data.aggregations.by_is_oa.buckets;
-    const byPublisherBuckets = res[0].data.aggregations.by_publisher.buckets;
+      const byIsOaBuckets = res[0].data.aggregations.by_is_oa.buckets;
+      const byPublisherBuckets = res[0].data.aggregations.by_publisher.buckets;
 
-    const licenceCounts = {};
-    let totalDocCount = 0;
+      const licenceCounts = {};
+      let totalDocCount = 0;
 
-    preRes.data.hits.hits.forEach((hit) => {
-      const { data: hitData, publisher } = hit._source;
-      const filteredData = hitData.filter((item) => item.publication_year === targetYear);
-      const docCount = filteredData.reduce((sum, item) => sum + Object.entries(item).reduce((a, [key, value]) => (key !== 'publication_year' ? a + value : a), 0), 0);
-      totalDocCount += docCount;
+      preRes.data.hits.hits.forEach((hit) => {
+        const { data: hitData, publisher } = hit._source;
+        const filteredData = hitData.filter(
+          (item) => item.publication_year === targetYear,
+        );
+        const docCount = filteredData.reduce(
+          (sum, item) => sum
+            + Object.entries(item).reduce(
+              (a, [key, value]) => (key !== 'publication_year' ? a + value : a),
+              0,
+            ),
+          0,
+        );
+        totalDocCount += docCount;
 
-      const byLicenceBuckets = Object.keys(filteredData[0])
-        .filter((key) => key !== 'publication_year')
-        .map((key) => {
-          const count = filteredData.reduce((sum, item) => sum + (item[key] || 0), 0);
-          if (!licenceCounts[key]) {
-            licenceCounts[key] = 0;
-          }
-          licenceCounts[key] += count;
-          return {
-            key,
-            doc_count: count,
-          };
+        const byLicenceBuckets = Object.keys(filteredData[0])
+          .filter((key) => key !== 'publication_year')
+          .map((key) => {
+            const count = filteredData.reduce(
+              (sum, item) => sum + (item[key] || 0),
+              0,
+            );
+            if (!licenceCounts[key]) {
+              licenceCounts[key] = 0;
+            }
+            licenceCounts[key] += count;
+            return {
+              key,
+              doc_count: count,
+            };
+          });
+
+        byPublisherBuckets.push({
+          key: publisher,
+          doc_count: docCount,
+          by_licence: {
+            doc_count_error_upper_bound: 0,
+            sum_other_doc_count: 0,
+            buckets: byLicenceBuckets,
+          },
+        });
+      });
+
+      // 「すべての出版者」選択時：no-publisherを含む全出版社の合計を取得
+      if (needle === '*') {
+        const preAllDataRes = await Axios.post(ES_API_URL, {
+          size: 0,
+          query,
+          aggs: {
+            nested_data: {
+              nested: {
+                path: 'data',
+              },
+              aggs: {
+                by_year: {
+                  filter: {
+                    term: { 'data.publication_year': targetYear },
+                  },
+                  aggs: {
+                    'cc-by': { sum: { field: 'data.cc-by' } },
+                    'cc-by-nc-nd': { sum: { field: 'data.cc-by-nc-nd' } },
+                    'cc-by-nc': { sum: { field: 'data.cc-by-nc' } },
+                    'cc-by-nc-sa': { sum: { field: 'data.cc-by-nc-sa' } },
+                    'cc-by-sa': { sum: { field: 'data.cc-by-sa' } },
+                    'cc-by-nd': { sum: { field: 'data.cc-by-nd' } },
+                    other: { sum: { field: 'data.other' } },
+                    no_license: { sum: { field: 'data.no_license' } },
+                  },
+                },
+              },
+            },
+          },
         });
 
-      byPublisherBuckets.push({
-        key: publisher,
-        doc_count: docCount,
+        const yearAggs = preAllDataRes.data.aggregations.nested_data.by_year;
+        const licenseKeys = [
+          'cc-by',
+          'cc-by-nc-nd',
+          'cc-by-nc',
+          'cc-by-nc-sa',
+          'cc-by-sa',
+          'cc-by-nd',
+          'other',
+          'no_license',
+        ];
+        licenseKeys.forEach((key) => {
+          licenceCounts[key] = yearAggs[key].value;
+        });
+        totalDocCount = licenseKeys.reduce(
+          (sum, key) => sum + licenceCounts[key],
+          0,
+        );
+      }
+
+      const byLicenceBuckets = Object.keys(licenceCounts).map((key) => ({
+        key: key !== 'no_license' ? key : 'no license',
+        doc_count: licenceCounts[key],
+      }));
+
+      byIsOaBuckets.push({
+        key: 1,
+        key_as_string: 'true',
+        doc_count: totalDocCount,
         by_licence: {
           doc_count_error_upper_bound: 0,
           sum_other_doc_count: 0,
           buckets: byLicenceBuckets,
         },
       });
-    });
-
-    const byLicenceBuckets = Object.keys(licenceCounts).map((key) => ({
-      key: key !== 'no_license' ? key : 'no license',
-      doc_count: licenceCounts[key],
-    }));
-
-    byIsOaBuckets.push({
-      key: 1,
-      key_as_string: 'true',
-      doc_count: totalDocCount,
-      by_licence: {
-        doc_count_error_upper_bound: 0,
-        sum_other_doc_count: 0,
-        buckets: byLicenceBuckets,
-      },
-    });
     } else {
       res = [];
     }
