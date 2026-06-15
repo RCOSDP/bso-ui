@@ -179,6 +179,57 @@ function useGetData(observationSnaps, isDetailed, needle = '*', domain = '') {
       });
     });
 
+    // 「すべての出版者」選択時：no-publisherを含む全出版社の合計を取得
+    if (needle === '*') {
+      const preAllDataRes = await Axios.post(ES_API_URL, {
+        size: 0,
+        query,
+        aggs: {
+          nested_data: {
+            nested: {
+              path: 'data',
+            },
+            aggs: {
+              by_year: {
+                filter: {
+                  term: { 'data.publication_year': targetYear },
+                },
+                aggs: {
+                  'cc-by': { sum: { field: 'data.cc-by' } },
+                  'cc-by-nc-nd': { sum: { field: 'data.cc-by-nc-nd' } },
+                  'cc-by-nc': { sum: { field: 'data.cc-by-nc' } },
+                  'cc-by-nc-sa': { sum: { field: 'data.cc-by-nc-sa' } },
+                  'cc-by-sa': { sum: { field: 'data.cc-by-sa' } },
+                  'cc-by-nd': { sum: { field: 'data.cc-by-nd' } },
+                  other: { sum: { field: 'data.other' } },
+                  no_license: { sum: { field: 'data.no_license' } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const yearAggs = preAllDataRes.data.aggregations.nested_data.by_year;
+      const licenseKeys = [
+        'cc-by',
+        'cc-by-nc-nd',
+        'cc-by-nc',
+        'cc-by-nc-sa',
+        'cc-by-sa',
+        'cc-by-nd',
+        'other',
+        'no_license',
+      ];
+      licenseKeys.forEach((key) => {
+        licenceCounts[key] = yearAggs[key].value;
+      });
+      totalDocCount = licenseKeys.reduce(
+        (sum, key) => sum + licenceCounts[key],
+        0,
+      );
+    }
+
     const byLicenceBuckets = Object.keys(licenceCounts).map((key) => ({
       key: key !== 'no_license' ? key : 'no license',
       doc_count: licenceCounts[key],
