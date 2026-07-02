@@ -82,6 +82,7 @@ export const EXCLUDE_REPOSITORIES_LIST = [
   'Hiroshima University Acedemic Information Repository (Hiroshima University)',
   'Hokkaido University Collection of Scholarly and Academic Papers (Hokkaido University)',
   'Hosei University Repository (Hosei University)',
+  'Institutional Repositories DataBase (IRDB)',
   'Institutional Resources for Unique Collection and Academic Archives (Tokyo Dental College)',
   'Iwate Medical University Repository (Iwate Medical University)',
   'Iwate University Repository (Iwate University)',
