@@ -11,6 +11,7 @@ const colors = {
   book: getCSSValue('--blue-soft-75'),
   'book-chapter': getCSSValue('--blue-soft-100'),
   'journal-article': getCSSValue('--orange-soft-100'),
+  preprint: getCSSValue('--green-soft-100'),
   proceedings: getCSSValue('--purple-medium-100'),
 };
 
@@ -154,22 +155,29 @@ function useGetData(observationSnap, domain) {
 
       // Find all years in data (xAxis)
       const years = data.map((year) => year.key);
-      // Find all types accross years (different lines)
+      // Find all types across years (different lines)
       const types = [];
-      data.forEach((year) => year.by_type.buckets
-        .filter((item) => item.key !== 'preprint')
-        .forEach((type) => {
-          if (!types.find((item) => item.key === type.key)) {
-            types.push({
-              color: colors[type.key],
-              data: [],
-              key: type.key,
-              name: intl.formatMessage({
-                id: `app.publication-genre.${type.key}`,
-              }),
-            });
-          }
-        }));
+      [
+        'journal-article',
+        'proceedings',
+        'book-chapter',
+        'book',
+        'preprint',
+        'dataset',
+        'other',
+      ].forEach((item) => {
+        const currentElem = data.filter((year) => year.by_type.buckets.find((bucket) => bucket.key === item));
+        if (currentElem.length > 0) {
+          types.push({
+            color: colors[item],
+            data: [],
+            key: item,
+            name: intl.formatMessage({
+              id: `app.publication-genre.${item}`,
+            }),
+          });
+        }
+      });
       // For each publication type
       types.forEach((type) => {
         // For each publication year
