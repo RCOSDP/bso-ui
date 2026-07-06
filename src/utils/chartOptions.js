@@ -982,6 +982,8 @@ export const chartOptions = {
         title: { text: intl.formatMessage({ id: 'app.publication-year' }) },
       };
       options.yAxis = getPercentageYAxis();
+      options.yAxis.min = 0;
+      options.yAxis.max = 100;
       options.yAxis.title.text = intl.formatMessage({ id: 'app.oa-rate' });
       options.legend.title.text = intl.formatMessage({
         id: 'app.publication-genre',

@@ -5,7 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { domains } from '../../utils/constants';
 import { getObservationLabel } from '../../utils/helpers';
 import useGlobals from '../../utils/Hooks/useGetGlobals';
-import useGetPublicationRateFrom from '../../utils/Hooks/useGetPublicationRateFrom';
+import useGetData from '../Charts/publications/general/dynamique-ouverture/get-data-josm';
 import Icon from '../Icon';
 import InfoCard from '../InfoCard';
 
@@ -14,34 +14,40 @@ export default function ProgressionCard({ domain }) {
   const { beforeLastObservationSnap, lastObservationSnap, observationSnaps } = useGlobals();
   const [previousObservationSnap, setPreviousObservationSnap] = useState('');
   const [progression, setProgression] = useState({});
+  const { data } = useGetData(observationSnaps, domain);
 
   useEffect(() => {
     setPreviousObservationSnap(
-      observationSnaps?.length === 1 ? observationSnaps[0] : observationSnaps?.[observationSnaps?.length - 1],
+      observationSnaps?.length > 1
+        ? observationSnaps[observationSnaps.length - 1]
+        : beforeLastObservationSnap,
     );
   }, [beforeLastObservationSnap, observationSnaps]);
 
-  const updateProgression = (res, year) => {
-    const { rate } = res;
+  useEffect(() => {
+    const seriesData = data?.dataGraph1?.series?.[0]?.data;
     if (
-      (Object.keys(progression).indexOf(year) < 0 && rate)
-      || (progression[year] !== rate && rate)
+      !seriesData?.length
+      || !lastObservationSnap
+      || !previousObservationSnap
     ) {
-      setProgression((prev) => ({ ...prev, [year]: rate }));
+      return;
     }
-  };
-
-  useGetPublicationRateFrom(domain, previousObservationSnap).then((res) => {
-    if (previousObservationSnap && Object.keys(res).length > 0) {
-      updateProgression(res, previousObservationSnap);
+    const lastLabel = getObservationLabel(lastObservationSnap, intl);
+    const previousLabel = getObservationLabel(previousObservationSnap, intl);
+    const lastOaRate = seriesData.find(
+      (item) => String(item.name) === String(lastLabel),
+    )?.y;
+    const previousOaRate = seriesData.find(
+      (item) => String(item.name) === String(previousLabel),
+    )?.y;
+    if (lastOaRate != null && previousOaRate != null) {
+      setProgression({
+        [lastObservationSnap]: lastOaRate,
+        [previousObservationSnap]: previousOaRate,
+      });
     }
-  });
-
-  useGetPublicationRateFrom(domain, lastObservationSnap).then((res) => {
-    if (lastObservationSnap) {
-      updateProgression(res, lastObservationSnap);
-    }
-  });
+  }, [data, intl, lastObservationSnap, previousObservationSnap]);
 
   const progressionPoints = () => {
     let progPoints = '';
