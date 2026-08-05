@@ -96,7 +96,14 @@ const HomePage = () => {
             <Col n='12'>
               {SHOW_MAINTENANCE_NOTICE && (
                 <div style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '1rem', borderRadius: '4px', marginBottom: '2rem', border: '1px solid #ffeeba' }}>
-                  <FormattedMessage id='app.maintenance-notice' />
+                  <FormattedMessage
+                    id='app.maintenance-notice'
+                    values={{
+                      br: () => <br />,
+                      b: (chunks) => <strong>{chunks}</strong>,
+                      i: (chunks) => <em>{chunks}</em>,
+                    }}
+                  />
                 </div>
               )}
               <section className='pb-48'>
