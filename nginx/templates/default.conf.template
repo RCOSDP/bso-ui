@@ -47,4 +47,29 @@ server {
     add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
     add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type';
   }
+
+  # ===== 攻撃と判別できるリクエストに 404 を返す（2026-11 追加）=====
+  # 既存の location は変更しない。正規表現の location は前方一致の location より
+  # 優先されるため、正規ページ・/elasticsearch/・/mailer/ のパスに該当しないことを検証済み。
+
+  # (1) ビルド成果物（/static/ 配下）に存在しないファイルは index.html を返さず 404
+  location ^~ /static/ {
+    root /usr/share/nginx/html;
+    try_files $uri =404;
+  }
+
+  # (2) ドットで始まるファイル・ディレクトリ（.git / .env / .aws など）
+  location ~ /\. {
+    return 404;
+  }
+
+  # (3) 本システムで使用しない拡張子
+  location ~* \.(php\d?|phtml|phar|inc|asp|aspx|asmx|ashx|axd|jsp|jspx|jsf|do|action|cgi|pl|py|rb|sh|cfm|sql|db|sqlite3?|mdb|bak|backup|old|orig|save|swp|tmp|dist|env|ini|conf|config|cfg|yml|yaml|toml|properties|log|pem|key|zip|tar|tgz|gz|bz2|xz|rar|7z|war|jar)$ {
+    return 404;
+  }
+
+  # (4) 既知の攻撃対象パス（製品・ミドルウェア固有のもの）
+  location ~* ^/(wp|wp-admin|wp-login|wp-content|wp-includes|wp-json|wordpress|xmlrpc|phpmyadmin|pma|myadmin|administrator|cgi-bin|vendor|actuator|solr|jenkins|manager|_profiler|telescope|druid|nacos|geoserver|remote|migadmin|lang|containers|developmentserver|sdk|boaform|gponform|hnap1|owa|ecp|autodiscover|server-status)(/|$) {
+    return 404;
+  }
 }
